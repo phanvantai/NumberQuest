@@ -27,12 +27,12 @@ struct TextStyle {
 extension TextStyle {
     /// The main custom font name
     static var customFontName: String {
-        return "Chewy-Regular"
+        return "Baloo2-VariableFont_wght"
     }
     
     /// Fallback font for secondary text
     static var secondaryFontName: String {
-        return "Baloo2-VariableFont_wght"
+        return "Chewy-Regular"
     }
     
     /// Whether to use the custom font or system font
@@ -66,12 +66,13 @@ extension TextStyle {
         } else {
             return systemFont(size: size)
         }
+    }
 }
 
 // MARK: - Predefined Text Styles
 extension TextStyle {
     
-    // MARK: - Headings (use primary custom font - Chewy)
+    // MARK: - Headings (use primary custom font - Baloo2)
     static let largeTitle = TextStyle(
         font: font(size: 38),
         color: .white
@@ -92,28 +93,28 @@ extension TextStyle {
         color: .white
     )
     
-    // MARK: - Body Text (use secondary font - Baloo2 for better readability)
+    // MARK: - Body Text (use primary font - Baloo2)
     static let body = TextStyle(
-        font: font(size: 16, useSecondary: true),
+        font: font(size: 16),
         color: .white.opacity(0.9)
     )
     
     static let bodySecondary = TextStyle(
-        font: font(size: 16, useSecondary: true),
+        font: font(size: 16),
         color: .white.opacity(0.8)
     )
     
     static let caption = TextStyle(
-        font: font(size: 14, useSecondary: true),
+        font: font(size: 14),
         color: .white.opacity(0.7)
     )
     
     static let smallCaption = TextStyle(
-        font: font(size: 12, useSecondary: true),
+        font: font(size: 12),
         color: .white.opacity(0.6)
     )
     
-    // MARK: - Button Text (use primary font - Chewy)
+    // MARK: - Button Text (use primary font - Baloo2)
     static let buttonLarge = TextStyle(
         font: font(size: 20),
         color: .white
@@ -129,7 +130,7 @@ extension TextStyle {
         color: .white
     )
     
-    // MARK: - Game-specific Text (use primary font - Chewy)
+    // MARK: - Game-specific Text (use primary font - Baloo2)
     static let gameTitle = TextStyle(
         font: font(size: 42),
         color: .white

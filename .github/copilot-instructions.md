@@ -61,10 +61,10 @@ Text("Game Title")
 ```
 
 #### Available Text Styles
-- `.gameTitle` - Large title text (Chewy font, 42pt)
-- `.title` - Section titles (Chewy font, 28pt)
-- `.subtitle` - Subtitles (Chewy font, 22pt)
-- `.heading` - Headings (Chewy font, 18pt)
+- `.gameTitle` - Large title text (Baloo2 font, 42pt)
+- `.title` - Section titles (Baloo2 font, 28pt)
+- `.subtitle` - Subtitles (Baloo2 font, 22pt)
+- `.heading` - Headings (Baloo2 font, 18pt)
 - `.body` - Body text (Baloo2 font, 16pt)
 - `.bodySecondary` - Secondary body text
 - `.caption` - Small text (Baloo2 font, 14pt)
@@ -75,8 +75,8 @@ Text("Game Title")
 - `.scoreText` - Score display
 
 ### Custom Fonts
-- **Primary Font**: Chewy-Regular (for titles, headings, buttons)
-- **Secondary Font**: Baloo2-VariableFont_wght (for body text, better readability)
+- **Primary Font**: Baloo2-VariableFont_wght (main font for all text)
+- **Secondary Font**: Chewy-Regular (for special emphasis when needed)
 - **Fallback**: System font with .rounded design
 
 ## Game Logic
