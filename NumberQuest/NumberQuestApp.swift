@@ -6,12 +6,14 @@
 //
 
 import SwiftUI
+import SpriteKit
 
 @main
 struct NumberQuestApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(GameData.shared)
         }
     }
 }

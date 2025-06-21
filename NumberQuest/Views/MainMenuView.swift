@@ -143,6 +143,21 @@ struct MainMenuView: View {
                                 )
                             }
                             .buttonStyle(PlainButtonStyle())
+                            
+                            #if DEBUG
+                            // Debug: Test SpriteKit GameScene
+                            NavigationLink(destination: GameSceneTestView().environmentObject(gameData)) {
+                                GameModeButton(
+                                    title: "🎮 SpriteKit Test",
+                                    subtitle: "GameScene Demo",
+                                    description: "Test the new SpriteKit implementation!",
+                                    primaryColor: .purple,
+                                    secondaryColor: .pink,
+                                    icon: "gamecontroller.fill"
+                                )
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            #endif
                         }
                         
                         // Add some bottom padding to ensure content is not cut off
