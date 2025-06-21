@@ -541,4 +541,85 @@ class ParticleEffects {
         
         return emitter
     }
+    
+    // MARK: - Static Factory Methods
+    
+    /// Create celebration burst effect for correct answers
+    static func createCelebrationBurst() -> SKEmitterNode? {
+        let emitter = SKEmitterNode()
+        
+        // Particle configuration for celebration burst
+        emitter.particleTexture = createStarTexture()
+        emitter.particleBirthRate = 50
+        emitter.numParticlesToEmit = 30
+        
+        // Lifetime
+        emitter.particleLifetime = 1.5
+        emitter.particleLifetimeRange = 0.5
+        
+        // Movement - burst outward
+        emitter.particleSpeed = 100
+        emitter.particleSpeedRange = 50
+        emitter.emissionAngleRange = CGFloat.pi * 2 // Full circle
+        
+        // Gravity effect
+        emitter.yAcceleration = -100
+        
+        // Size animation
+        emitter.particleScale = 0.3
+        emitter.particleScaleRange = 0.2
+        emitter.particleScaleSpeed = -0.2
+        
+        // Color animation
+        emitter.particleColor = .nqYellow
+        emitter.particleColorBlendFactor = 1.0
+        emitter.particleAlpha = 1.0
+        emitter.particleAlphaSpeed = -0.8
+        
+        // Rotation
+        emitter.particleRotation = 0
+        emitter.particleRotationRange = CGFloat.pi * 2
+        emitter.particleRotationSpeed = CGFloat.pi
+        
+        return emitter
+    }
+    
+    /// Create star texture for particles
+    private static func createStarTexture() -> SKTexture {
+        let size = CGSize(width: 16, height: 16)
+        let renderer = UIGraphicsImageRenderer(size: size)
+        
+        let image = renderer.image { context in
+            let cgContext = context.cgContext
+            
+            // Draw a simple star shape
+            cgContext.setFillColor(UIColor.white.cgColor)
+            
+            let center = CGPoint(x: size.width/2, y: size.height/2)
+            let radius: CGFloat = 6
+            let numPoints = 5
+            
+            cgContext.beginPath()
+            
+            for i in 0...numPoints {
+                let angle = CGFloat(i) * 2 * CGFloat.pi / CGFloat(numPoints) - CGFloat.pi/2
+                let isOuterPoint = i % 2 == 0
+                let currentRadius = isOuterPoint ? radius : radius * 0.5
+                
+                let x = center.x + cos(angle) * currentRadius
+                let y = center.y + sin(angle) * currentRadius
+                
+                if i == 0 {
+                    cgContext.move(to: CGPoint(x: x, y: y))
+                } else {
+                    cgContext.addLine(to: CGPoint(x: x, y: y))
+                }
+            }
+            
+            cgContext.closePath()
+            cgContext.fillPath()
+        }
+        
+        return SKTexture(image: image)
+    }
 }

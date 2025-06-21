@@ -23,6 +23,14 @@ class GameScene: BaseScene {
     /// Current level being played (for campaign mode)
     var currentLevel: GameLevel?
     
+    /// Question generator for creating math problems
+    private var questionGenerator = QuestionGenerator()
+    
+    /// Game data reference for progress tracking
+    var gameDataRef: GameData {
+        return GameData.shared
+    }
+    
     /// Camera node for managing viewport
     private var gameCamera: SKCameraNode!
     
@@ -47,6 +55,12 @@ class GameScene: BaseScene {
     /// Game state
     private var isGameActive = false
     private var isPaused = false
+    
+    // UI Components
+    private var questionCard: QuestionCardNode?
+    private var answerButtons: [AnswerButtonNode] = []
+    private var scoreDisplay: ScoreDisplayNode?
+    private var timerDisplay: TimerNode?
     
     // MARK: - Scene Lifecycle
     
@@ -358,29 +372,39 @@ class GameScene: BaseScene {
     private func setupHeader() {
         headerContainer.removeAllChildren()
         
-        // Create header background
-        let headerBg = SKShapeNode(rectOf: CGSize(
-            width: coordinateSystem.scaledValue(380),
-            height: coordinateSystem.scaledValue(80)
-        ), cornerRadius: coordinateSystem.scaledValue(20))
-        headerBg.fillColor = UIColor.black.withAlphaComponent(0.2)
-        headerBg.strokeColor = UIColor.white.withAlphaComponent(0.3)
-        headerBg.lineWidth = 2
-        headerBg.zPosition = -1
-        headerContainer.addChild(headerBg)
+        // Create score display
+        let scoreSize = CGSize(
+            width: coordinateSystem.scaledValue(200),
+            height: coordinateSystem.scaledValue(60)
+        )
+        scoreDisplay = ScoreDisplayNode(size: scoreSize, coordinateSystem: coordinateSystem)
+        scoreDisplay!.position = CGPoint(x: -coordinateSystem.scaledValue(90), y: 0)
+        headerContainer.addChild(scoreDisplay!)
         
-        // Add header elements (will be implemented in Step 2.2)
-        // This is placeholder for now
-        let headerLabel = SKLabelNode(text: "Game Header", style: .heading)
-        headerLabel.position = CGPoint(x: 0, y: 0)
-        headerContainer.addChild(headerLabel)
+        // Create timer display
+        let timerRadius = coordinateSystem.scaledValue(25)
+        timerDisplay = TimerNode(radius: timerRadius, coordinateSystem: coordinateSystem)
+        timerDisplay!.position = CGPoint(x: coordinateSystem.scaledValue(90), y: 0)
         
-        print("📊 Header setup completed")
+        // Set up timer callbacks
+        timerDisplay?.onTimeUpdate = { [weak self] remainingTime in
+            // Handle time updates if needed
+        }
+        
+        timerDisplay?.onTimeExpired = { [weak self] in
+            self?.handleTimeExpired()
+        }
+        
+        headerContainer.addChild(timerDisplay!)
+        
+        print("📊 Header setup completed with ScoreDisplay and Timer")
     }
     
     /// Update header UI layout
     private func updateHeaderLayout() {
-        // This will be expanded in Step 2.2 when we add actual UI components
+        // Update positions of score display and timer if needed
+        scoreDisplay?.position = CGPoint(x: -coordinateSystem.scaledValue(90), y: 0)
+        timerDisplay?.position = CGPoint(x: coordinateSystem.scaledValue(90), y: 0)
     }
     
     // MARK: - Question Area Setup
@@ -389,31 +413,15 @@ class GameScene: BaseScene {
     private func setupQuestionArea() {
         questionContainer.removeAllChildren()
         
-        // Create question card background
-        let questionBg = SKShapeNode(rectOf: CGSize(
+        // Create question card
+        let cardSize = CGSize(
             width: coordinateSystem.scaledValue(350),
             height: coordinateSystem.scaledValue(120)
-        ), cornerRadius: coordinateSystem.scaledValue(25))
-        questionBg.fillColor = UIColor.white.withAlphaComponent(0.9)
-        questionBg.strokeColor = UIColor.white
-        questionBg.lineWidth = 3
-        questionBg.zPosition = -1
+        )
+        questionCard = QuestionCardNode(size: cardSize, coordinateSystem: coordinateSystem)
+        questionContainer.addChild(questionCard!)
         
-        // Add shadow effect
-        let shadow = SKShapeNode(rectOf: questionBg.frame.size, cornerRadius: coordinateSystem.scaledValue(25))
-        shadow.fillColor = UIColor.black.withAlphaComponent(0.2)
-        shadow.position = CGPoint(x: 5, y: -5)
-        shadow.zPosition = -2
-        
-        questionContainer.addChild(shadow)
-        questionContainer.addChild(questionBg)
-        
-        // Placeholder question text (will be replaced in Step 2.2)
-        let questionLabel = SKLabelNode(text: "Question will appear here", style: .questionText)
-        questionLabel.position = CGPoint(x: 0, y: 0)
-        questionContainer.addChild(questionLabel)
-        
-        print("❓ Question area setup completed")
+        print("❓ Question area setup completed with QuestionCardNode")
     }
     
     // MARK: - Answers Area Setup
@@ -421,19 +429,23 @@ class GameScene: BaseScene {
     /// Setup answer buttons area
     private func setupAnswersArea() {
         answersContainer.removeAllChildren()
+        answerButtons.removeAll()
         
-        // Create placeholder answer buttons (will be implemented in Step 2.2)
+        // Create answer buttons
         let buttonCount = 4
         let buttonSize = CGSize(
-            width: coordinateSystem.scaledValue(150),
-            height: coordinateSystem.scaledValue(60)
+            width: coordinateSystem.scaledValue(140),
+            height: coordinateSystem.scaledValue(50)
         )
         
         for i in 0..<buttonCount {
-            let button = SKShapeNode(rectOf: buttonSize, cornerRadius: coordinateSystem.scaledValue(15))
-            button.fillColor = UIColor.systemBlue.withAlphaComponent(0.8)
-            button.strokeColor = UIColor.white
-            button.lineWidth = 2
+            let button = AnswerButtonNode(
+                size: buttonSize,
+                coordinateSystem: coordinateSystem
+            ) { [weak self] answerValue in
+                self?.handleAnswerSelected(answerValue)
+            }
+            
             button.name = "answerButton_\(i)"
             
             // Position buttons in a 2x2 grid
@@ -446,15 +458,11 @@ class GameScene: BaseScene {
                 y: (0.5 - CGFloat(row)) * (buttonSize.height + spacing)
             )
             
-            // Add placeholder text
-            let label = SKLabelNode(text: "Answer \(i+1)", style: .answerText)
-            label.position = CGPoint(x: label.position.x, y: label.position.y - 5)
-            button.addChild(label)
-            
+            answerButtons.append(button)
             answersContainer.addChild(button)
         }
         
-        print("🎯 Answers area setup completed")
+        print("🎯 Answers area setup completed with \(buttonCount) AnswerButtonNodes")
     }
     
     // MARK: - Game Initialization
@@ -465,22 +473,17 @@ class GameScene: BaseScene {
         isPaused = false
         
         // Setup game session based on mode
-        if let session = gameSession {
-            // Initialize session properties
-            session.score = 0
-            session.streak = 0
-            session.questionsAnswered = 0
-            session.correctAnswers = 0
-            
-            // Set time limit based on level or game mode
-            if let level = currentLevel {
-                session.maxQuestions = level.maxQuestions
-                session.timeRemaining = level.maxQuestions * 30 // 30 seconds per question
-            } else {
-                session.maxQuestions = 10 // Default for quick play
-                session.timeRemaining = 300 // 5 minutes default
-            }
+        if gameSession == nil {
+            gameSession = GameSession()
         }
+        
+        guard let session = gameSession else { return }
+        
+        // Load player progress
+        session.loadProgress()
+        
+        // Configure session based on game mode and level
+        configureGameSession(session)
         
         print("🎮 Game initialized - Mode: \(gameMode)")
         
@@ -492,12 +495,70 @@ class GameScene: BaseScene {
         run(SKAction.sequence([startDelay, startGame]))
     }
     
+    /// Configure game session based on mode and level
+    private func configureGameSession(_ session: GameSession) {
+        // Reset session state
+        session.score = 0
+        session.streak = 0
+        session.questionsAnswered = 0
+        session.correctAnswers = 0
+        session.gameMode = gameMode
+        session.currentLevel = currentLevel
+        
+        // Set session parameters based on mode
+        if gameMode == .campaign, let level = currentLevel {
+            // Campaign mode: use level settings
+            session.maxQuestions = level.maxQuestions
+            session.timeRemaining = level.maxQuestions * 45 // 45 seconds per question
+            
+            print("📚 Campaign Level: \(level.name)")
+            print("📊 Questions: \(level.maxQuestions), Operations: \(level.allowedOperations.map(\.rawValue))")
+            
+        } else {
+            // Quick play mode: adaptive settings
+            session.maxQuestions = 15
+            session.timeRemaining = 300 // 5 minutes
+            
+            print("⚡ Quick Play Mode")
+        }
+        
+        // Initialize displays with session data
+        updateDisplaysWithSession(session)
+    }
+    
+    /// Update all displays with current session data
+    private func updateDisplaysWithSession(_ session: GameSession) {
+        scoreDisplay?.updateScore(session.score, animated: false)
+        scoreDisplay?.updateStreak(session.streak, animated: false)
+        
+        let progress = Float(session.questionsAnswered) / Float(session.maxQuestions)
+        scoreDisplay?.updateProgress(progress, animated: false)
+    }
+    
     /// Start the actual game
     private func startGame() {
         isGameActive = true
         
         // Show entrance animations for all UI elements
         animateGameStart()
+        
+        // Start timer and GameSession
+        if let session = gameSession {
+            session.isGameActive = true
+            timerDisplay?.startTimer(duration: TimeInterval(session.timeRemaining))
+            
+            // Start observing session changes
+            observeGameSessionChanges()
+        }
+        
+        // Load first question
+        if let session = gameSession {
+            generateAndDisplayNextQuestion(session: session)
+        }
+        
+        // Play game start sound
+        playSoundEffect(.levelComplete) // Using levelComplete as game start sound
+        playHapticFeedback(.success)
         
         print("🚀 Game started!")
     }
@@ -514,15 +575,18 @@ class GameScene: BaseScene {
     
     /// Animate game start with UI entrance effects
     private func animateGameStart() {
-        // Animate header entrance
-        animateNodeEntrance(headerContainer, delay: 0.2)
+        // Animate score display entrance
+        scoreDisplay?.animateEntrance(delay: 0.2)
         
-        // Animate question area entrance
-        animateNodeEntrance(questionContainer, delay: 0.4)
+        // Animate timer entrance
+        timerDisplay?.animateEntrance(delay: 0.3)
+        
+        // Animate question card entrance
+        questionCard?.animateEntrance(delay: 0.4)
         
         // Animate answer buttons entrance with staggered timing
-        for (index, child) in answersContainer.children.enumerated() {
-            animateNodeEntrance(child, delay: 0.6 + Double(index) * 0.1)
+        for (index, button) in answerButtons.enumerated() {
+            button.animateEntrance(delay: 0.6 + Double(index) * 0.1)
         }
         
         // Add background animation enhancement
@@ -575,6 +639,9 @@ class GameScene: BaseScene {
         // Pause all actions
         gameContainer.isPaused = true
         
+        // Pause timer
+        timerDisplay?.pauseTimer()
+        
         print("⏸️ Game paused")
     }
     
@@ -585,6 +652,9 @@ class GameScene: BaseScene {
         
         // Resume all actions
         gameContainer.isPaused = false
+        
+        // Resume timer
+        timerDisplay?.resumeTimer()
         
         print("▶️ Game resumed")
     }
@@ -597,53 +667,468 @@ class GameScene: BaseScene {
         // Stop all animations
         gameContainer.removeAllActions()
         
+        // Stop timer
+        timerDisplay?.stopTimer()
+        
+        // Disable answer buttons
+        answerButtons.forEach { $0.setEnabled(false) }
+        
         print("🏁 Game ended")
     }
-}
-
-// MARK: - Supporting Types
-
-/// Layout zones for positioning UI elements
-private enum LayoutZone {
-    case header
-    case questionArea
-    case answersArea
-}
-
-// MARK: - SKLabelNode Extension for Text Styles
-
-extension SKLabelNode {
-    /// Convenience initializer with text style
-    convenience init(text: String, style: TextStyle) {
-        self.init()
-        self.text = text
+    
+    // MARK: - Game Logic Methods
+    
+    /// Handle answer selection
+    private func handleAnswerSelected(_ answerValue: Int) {
+        guard isGameActive, !isPaused, let session = gameSession else { return }
+        guard let currentQuestion = session.currentQuestion else { return }
         
-        // Apply text style (simplified version - full implementation would use TextStyles.swift)
-        switch style {
-        case .gameTitle:
-            self.fontSize = 42
-            self.fontName = "Baloo2-Bold"
-        case .heading:
-            self.fontSize = 24
-            self.fontName = "Baloo2-Medium"
-        case .questionText:
-            self.fontSize = 28
-            self.fontName = "Baloo2-Bold"
-        case .answerText:
-            self.fontSize = 18
-            self.fontName = "Baloo2-Medium"
-        default:
-            self.fontSize = 16
-            self.fontName = "Baloo2-Regular"
+        // Disable all buttons to prevent multiple selections
+        answerButtons.forEach { $0.setEnabled(false) }
+        
+        // Enhanced answer validation
+        let validationResult = validateAnswer(answerValue, correctAnswer: currentQuestion.correctAnswer)
+        
+        // Update button states with enhanced visual feedback
+        updateButtonStatesForAnswer(
+            selectedAnswer: answerValue, 
+            correctAnswer: currentQuestion.correctAnswer, 
+            isCorrect: validationResult.isCorrect
+        )
+        
+        // Process the answer through GameSession
+        processAnswerWithSession(validationResult.isCorrect, session: session)
+        
+        // Play sound effects and haptic feedback
+        if validationResult.isCorrect {
+            playSoundEffect(.correct)
+            playHapticFeedback(.success)
+        } else {
+            playSoundEffect(.incorrect)
+            playHapticFeedback(.error)
         }
         
-        self.fontColor = .white
-        self.horizontalAlignmentMode = .center
-        self.verticalAlignmentMode = .center
+        // Provide detailed feedback
+        provideFeedback(for: validationResult)
+        
+        // Add visual celebrations or feedback
+        if validationResult.isCorrect {
+            addCorrectAnswerCelebration()
+        } else {
+            addIncorrectAnswerFeedback()
+        }
+        
+        // Schedule next question or game end
+        scheduleNextAction(isCorrect: validationResult.isCorrect, session: session)
+    }
+    
+    /// Update button visual states based on answer
+    private func updateButtonStatesForAnswer(selectedAnswer: Int, correctAnswer: Int, isCorrect: Bool) {
+        for button in answerButtons {
+            if button.answerValue == selectedAnswer {
+                // The button that was selected
+                button.setState(isCorrect ? .correct : .incorrect, animated: true)
+            } else if button.answerValue == correctAnswer && !isCorrect {
+                // Show the correct answer if user was wrong
+                button.setState(.correct, animated: true)
+            } else {
+                // Other buttons become disabled
+                button.setState(.disabled, animated: true)
+            }
+        }
+    }
+    
+    /// Process the answer using GameSession logic
+    private func processAnswerWithSession(_ isCorrect: Bool, session: GameSession) {
+        // Update session statistics
+        session.questionsAnswered += 1
+        session.playerProgress.totalQuestionsAnswered += 1
+        
+        if isCorrect {
+            session.correctAnswers += 1
+            session.playerProgress.correctAnswers += 1
+            session.streak += 1
+            
+            // Calculate score using GameSession's logic
+            let points = calculatePointsForAnswer(session: session)
+            session.score += points
+            
+            // Update best streak
+            if session.streak > session.playerProgress.bestStreak {
+                session.playerProgress.bestStreak = session.streak
+            }
+            
+            // Add bonus time for correct answers in campaign mode
+            if gameMode == .campaign {
+                let bonusTime = min(session.streak * 2, 10) // Up to 10 seconds bonus
+                timerDisplay?.addTime(TimeInterval(bonusTime))
+            }
+            
+        } else {
+            session.streak = 0
+        }
+        
+        // Update displays with new data
+        updateDisplaysWithSessionData(session)
+        
+        // Save progress after each answer
+        session.saveProgress()
+        
+        // Update GameData for persistence
+        updateGameDataProgress(session)
+        
+        print("📊 Answer processed - Score: \(session.score), Streak: \(session.streak)")
+    }
+    
+    /// Calculate points for an answer using enhanced logic
+    private func calculatePointsForAnswer(session: GameSession) -> Int {
+        guard let question = session.currentQuestion else { return 10 }
+        
+        let basePoints = 10
+        let streakBonus = min(session.streak * 2, 20) // Cap at 20 bonus points
+        
+        let difficultyMultiplier: Int
+        switch question.difficulty {
+        case .easy: difficultyMultiplier = 1
+        case .medium: difficultyMultiplier = 2
+        case .hard: difficultyMultiplier = 3
+        }
+        
+        // Time bonus for quick answers (if we track answer time)
+        let timeBonus = 0 // Could add time-based bonus here
+        
+        return (basePoints + streakBonus + timeBonus) * difficultyMultiplier
+    }
+    
+    /// Update displays with current session data
+    private func updateDisplaysWithSessionData(_ session: GameSession) {
+        scoreDisplay?.updateScore(session.score, animated: true)
+        scoreDisplay?.updateStreak(session.streak, animated: true)
+        
+        let progress = Float(session.questionsAnswered) / Float(session.maxQuestions)
+        scoreDisplay?.updateProgress(progress, animated: true)
+    }
+    
+    /// Update GameData with current progress
+    private func updateGameDataProgress(_ session: GameSession) {
+        gameDataRef.playerProgress = session.playerProgress
+        
+        // Update level completion for campaign mode
+        if gameMode == .campaign, let level = currentLevel {
+            let accuracy = Double(session.correctAnswers) / Double(session.questionsAnswered)
+            let stars = calculateStarsEarned(accuracy: accuracy, streak: session.streak)
+            
+            // Update level progress if better than before
+            // This would require enhanced GameData model
+            print("🌟 Level accuracy: \(Int(accuracy * 100))%, Stars: \(stars)")
+        }
+    }
+    
+    /// Calculate stars earned based on performance
+    private func calculateStarsEarned(accuracy: Double, streak: Int) -> Int {
+        if accuracy >= 0.9 && streak >= 5 {
+            return 3 // Perfect performance
+        } else if accuracy >= 0.7 && streak >= 3 {
+            return 2 // Good performance
+        } else if accuracy >= 0.5 {
+            return 1 // Basic completion
+        } else {
+            return 0 // No stars
+        }
+    }
+    
+    /// Schedule the next action (question or game end)
+    private func scheduleNextAction(isCorrect: Bool, session: GameSession) {
+        let delay = isCorrect ? 1.8 : 2.5 // Longer delay for wrong answers
+        
+        let nextAction = SKAction.sequence([
+            SKAction.wait(forDuration: delay),
+            SKAction.run { [weak self] in
+                self?.proceedToNextQuestion(session: session)
+            }
+        ])
+        run(nextAction)
+    }
+    
+    /// Proceed to next question or end game
+    private func proceedToNextQuestion(session: GameSession) {
+        // Check if game should end
+        if session.questionsAnswered >= session.maxQuestions {
+            completeGame(session: session)
+            return
+        }
+        
+        // Generate and display next question
+        generateAndDisplayNextQuestion(session: session)
+        
+        // Re-enable buttons
+        answerButtons.forEach { $0.setEnabled(true) }
+    }
+    
+    /// Generate and display the next question
+    private func generateAndDisplayNextQuestion(session: GameSession) {
+        // Use GameSession's question generation
+        session.generateNewQuestion()
+        
+        guard let newQuestion = session.currentQuestion else {
+            print("❌ Failed to generate question")
+            return
+        }
+        
+        // Update UI with new question
+        questionCard?.setQuestion(newQuestion)
+        updateAnswerButtons(with: newQuestion)
+        
+        print("❓ New question: \(newQuestion.questionText)")
+    }
+    
+    /// Complete the game with final score calculation
+    private func completeGame(session: GameSession) {
+        endGame()
+        
+        // Calculate final results
+        let finalAccuracy = Double(session.correctAnswers) / Double(session.questionsAnswered)
+        let stars = calculateStarsEarned(accuracy: finalAccuracy, streak: session.playerProgress.bestStreak)
+        
+        print("🎉 Game Complete!")
+        print("📊 Final Score: \(session.score)")
+        print("🎯 Accuracy: \(Int(finalAccuracy * 100))%")
+        print("🌟 Stars Earned: \(stars)")
+        
+        // Save final progress
+        session.saveProgress()
+        
+        // TODO: Transition to game over scene
+        // GameSceneManager.shared.navigateToScene(.gameOver(GameResults(...)))
+    }
+    
+    /// Handle timer expiration
+    private func handleTimeExpired() {
+        guard let session = gameSession else { return }
+        
+        // Time's up - complete the game
+        completeGame(session: session)
+        
+        print("⏰ Time's up! Final Score: \(session.score)")
+    }
+    
+    /// Generate a new math question using GameSession's QuestionGenerator
+    private func generateQuestionWithSession(_ session: GameSession) -> MathQuestion {
+        let difficulty: GameDifficulty
+        let operations: [MathOperation]
+        
+        if let level = currentLevel {
+            // Campaign mode: use level settings
+            difficulty = level.difficulty
+            operations = level.allowedOperations
+        } else {
+            // Quick play mode: adaptive difficulty
+            difficulty = getAdaptiveDifficulty(session: session)
+            operations = getOperationsForDifficulty(difficulty)
+        }
+        
+        return questionGenerator.generateQuestion(difficulty: difficulty, operations: operations)
+    }
+    
+    /// Get adaptive difficulty based on current performance
+    private func getAdaptiveDifficulty(session: GameSession) -> GameDifficulty {
+        guard session.questionsAnswered > 0 else { return .easy }
+        
+        let accuracy = Double(session.correctAnswers) / Double(session.questionsAnswered)
+        let recentStreak = session.streak
+        
+        // Adaptive difficulty logic
+        if accuracy >= 0.8 && recentStreak >= 4 {
+            return .hard
+        } else if accuracy >= 0.6 && recentStreak >= 2 {
+            return .medium
+        } else {
+            return .easy
+        }
+    }
+    
+    /// Get operations allowed for a difficulty level
+    private func getOperationsForDifficulty(_ difficulty: GameDifficulty) -> [MathOperation] {
+        switch difficulty {
+        case .easy:
+            return [.addition, .subtraction]
+        case .medium:
+            return [.addition, .subtraction, .multiplication]
+        case .hard:
+            return MathOperation.allCases
+        }
+    }
+    
+    /// Update answer buttons with new question data
+    private func updateAnswerButtons(with question: MathQuestion) {
+        let answers = [question.correctAnswer] + question.wrongAnswers
+        let shuffledAnswers = answers.shuffled()
+        
+        for (index, button) in answerButtons.enumerated() {
+            if index < shuffledAnswers.count {
+                button.setAnswer(shuffledAnswers[index])
+                button.setEnabled(true)
+                button.setState(.normal, animated: true)
+            } else {
+                button.setAnswer(0)
+                button.setEnabled(false)
+                button.setState(.disabled, animated: true)
+            }
+        }
+        
+        print("🔄 Answer buttons updated with: \(shuffledAnswers)")
+    }
+    
+    // MARK: - Touch Handling
+    
+    /// Handle touch began events
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard isGameActive, !isPaused else { return }
+        
+        for touch in touches {
+            let location = touch.location(in: self)
+            let touchedNodes = nodes(at: location)
+            
+            // Check if any answer button was touched
+            for node in touchedNodes {
+                if let answerButton = node.parent as? AnswerButtonNode {
+                    handleAnswerButtonTouch(answerButton)
+                    return
+                } else if let answerButton = node as? AnswerButtonNode {
+                    handleAnswerButtonTouch(answerButton)
+                    return
+                }
+            }
+        }
+    }
+    
+    /// Handle answer button touch
+    private func handleAnswerButtonTouch(_ button: AnswerButtonNode) {
+        guard button.isEnabled else { return }
+        
+        // Add touch feedback
+        button.addTouchFeedback()
+        
+        // Handle the answer selection
+        handleAnswerSelected(button.answerValue)
+        
+        print("🎯 Answer button touched: \(button.answerValue)")
+    }
+    
+    /// Handle touch moved events (for button highlighting)
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard isGameActive, !isPaused else { return }
+        
+        for touch in touches {
+            let location = touch.location(in: self)
+            let touchedNodes = nodes(at: location)
+            
+            // Update button hover states
+            for button in answerButtons {
+                let isHovered = touchedNodes.contains { node in
+                    return node.parent == button || node == button
+                }
+                button.setHovered(isHovered)
+            }
+        }
+    }
+    
+    /// Handle touch ended events
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        // Clear all hover states
+        for button in answerButtons {
+            button.setHovered(false)
+        }
+    }
+    
+    /// Handle touch cancelled events
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        // Clear all hover states
+        for button in answerButtons {
+            button.setHovered(false)
+        }
+    }
+
+    // MARK: - Game Session Observation
+    
+    /// Start observing GameSession changes
+    private func observeGameSessionChanges() {
+        // In a real implementation, this would set up observers for GameSession changes
+        // For now, we rely on direct method calls to update the UI
+        print("👀 Started observing GameSession changes")
+    }
+    
+    /// Update answer buttons with new question data
+    private func updateAnswerButtons(with question: MathQuestion) {
+        let answers = [question.correctAnswer] + question.wrongAnswers
+        let shuffledAnswers = answers.shuffled()
+        
+        for (index, button) in answerButtons.enumerated() {
+            if index < shuffledAnswers.count {
+                button.setAnswer(shuffledAnswers[index])
+                button.setEnabled(true)
+                button.setState(.normal, animated: true)
+            } else {
+                button.setAnswer(0)
+                button.setEnabled(false)
+                button.setState(.disabled, animated: true)
+            }
+        }
+        
+        print("🔄 Answer buttons updated with: \(shuffledAnswers)")
+    }
+    
+    /// Schedule next action based on answer result
+    private func scheduleNextAction(isCorrect: Bool, session: GameSession) {
+        let delayDuration: TimeInterval = isCorrect ? 1.5 : 2.0 // Longer delay for wrong answers
+        
+        let nextAction = SKAction.sequence([
+            SKAction.wait(forDuration: delayDuration),
+            SKAction.run { [weak self] in
+                self?.proceedToNextQuestion(session: session)
+            }
+        ])
+        
+        run(nextAction, withKey: "nextQuestionAction")
+    }
+    
+    /// Proceed to next question or end game
+    private func proceedToNextQuestion(session: GameSession) {
+        // Check if game should end
+        if session.questionsAnswered >= session.maxQuestions {
+            completeGame(session: session)
+            return
+        }
+        
+        // Update displays with current session state
+        updateDisplaysWithSession(session)
+        
+        // Generate and display next question
+        generateAndDisplayNextQuestion(session: session)
+        
+        // Re-enable buttons
+        answerButtons.forEach { $0.setEnabled(true) }
     }
 }
 
-/// Text style enumeration
-enum TextStyle {
-    case gameTitle, heading, questionText, answerText, body
+// MARK: - SKLabelNode Extensions for Visual Effects
+
+extension SKLabelNode {
+    /// Add glow effect to label
+    func addGlow(color: UIColor, radius: CGFloat) {
+        let effectNode = SKEffectNode()
+        effectNode.shouldRasterize = true
+        effectNode.shouldEnableEffects = true
+        
+        let blur = CIFilter(name: "CIGaussianBlur")
+        blur?.setValue(radius, forKey: kCIInputRadiusKey)
+        effectNode.filter = blur
+        
+        let glowLabel = self.copy() as! SKLabelNode
+        glowLabel.fontColor = color
+        glowLabel.blendMode = .add
+        
+        effectNode.addChild(glowLabel)
+        parent?.insertChild(effectNode, at: 0)  // Insert behind original label
+    }
 }

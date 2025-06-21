@@ -50,17 +50,17 @@ NumberQuest/
 
 ### Step 2.2: Game UI Nodes
 
-- [ ] Create `QuestionCardNode` - animated math question display
-- [ ] Build `AnswerButtonNode` - interactive answer buttons with effects
-- [ ] Implement `ScoreDisplayNode` - animated score and streak counter
-- [ ] Add `TimerNode` - countdown timer with visual effects
+- [x] Create `QuestionCardNode` - animated math question display
+- [x] Build `AnswerButtonNode` - interactive answer buttons with effects
+- [x] Implement `ScoreDisplayNode` - animated score and streak counter
+- [x] Add `TimerNode` - countdown timer with visual effects
 
 ### Step 2.3: Game Logic Integration
 
-- [ ] Connect existing `GameSession` model to SpriteKit scene
-- [ ] Implement touch handling for answer selection
-- [ ] Add question generation and display logic
-- [ ] Create answer validation with visual feedback
+- [x] Connect existing `GameSession` model to SpriteKit scene
+- [x] Implement touch handling for answer selection
+- [x] Add question generation and display logic
+- [x] Create answer validation with visual feedback
 
 ### Step 2.4: Animations & Effects
 

@@ -157,6 +157,19 @@ struct MainMenuView: View {
                                 )
                             }
                             .buttonStyle(PlainButtonStyle())
+                            
+                            // Debug: Step 2.3 Integration Demo
+                            NavigationLink(destination: GameLogicIntegrationDemo().environmentObject(gameData)) {
+                                GameModeButton(
+                                    title: "✅ Step 2.3 Demo",
+                                    subtitle: "Game Logic Integration",
+                                    description: "Showcase completed logic integration!",
+                                    primaryColor: .green,
+                                    secondaryColor: .mint,
+                                    icon: "checkmark.circle.fill"
+                                )
+                            }
+                            .buttonStyle(PlainButtonStyle())
                             #endif
                         }
                         
