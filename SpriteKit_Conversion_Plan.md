@@ -8,10 +8,10 @@ Converting NumberQuest from SwiftUI to SpriteKit to enhance animations, visual e
 
 ### Step 1.1: Project Structure Setup
 
-- [x] Create new SpriteKit folder structure
-- [x] Add SpriteKit framework import
-- [x] Create base scene classes
-- [x] Set up scene manager/coordinator
+- [ ] Create new SpriteKit folder structure
+- [ ] Add SpriteKit framework import
+- [ ] Create base scene classes
+- [ ] Set up scene manager/coordinator
 
 **New Folders to Create:**
 
@@ -27,40 +27,40 @@ NumberQuest/
 
 ### Step 1.2: Core Infrastructure
 
-- [x] Create `GameSceneManager` for scene transitions
-- [x] Create `NodeFactory` for reusable UI components
-- [x] Set up coordinate system helpers for responsive design
-- [x] Create base `GameScene` class with common functionality
+- [ ] Create `GameSceneManager` for scene transitions
+- [ ] Create `NodeFactory` for reusable UI components
+- [ ] Set up coordinate system helpers for responsive design
+- [ ] Create base `GameScene` class with common functionality
 
 ### Step 1.3: Asset Preparation
 
-- [x] Convert color schemes to SpriteKit-compatible assets
-- [x] Prepare texture atlases for animations
-- [x] Set up particle effect files (.sks)
-- [x] Configure sound effect integration
+- [ ] Convert color schemes to SpriteKit-compatible assets
+- [ ] Prepare texture atlases for animations
+- [ ] Set up particle effect files (.sks)
+- [ ] Configure sound effect integration
 
 ## Phase 2: Core Game Scene 🎮
 
 ### Step 2.1: GameScene Foundation
 
-- [x] Create `GameScene.swift` - main gameplay screen
-- [x] Implement basic scene setup and layout
-- [x] Add background with animated gradients
-- [x] Set up camera and coordinate system
+- [ ] Create `GameScene.swift` - main gameplay screen
+- [ ] Implement basic scene setup and layout
+- [ ] Add background with animated gradients
+- [ ] Set up camera and coordinate system
 
 ### Step 2.2: Game UI Nodes
 
-- [x] Create `QuestionCardNode` - animated math question display
-- [x] Build `AnswerButtonNode` - interactive answer buttons with effects
-- [x] Implement `ScoreDisplayNode` - animated score and streak counter
-- [x] Add `TimerNode` - countdown timer with visual effects
+- [ ] Create `QuestionCardNode` - animated math question display
+- [ ] Build `AnswerButtonNode` - interactive answer buttons with effects
+- [ ] Implement `ScoreDisplayNode` - animated score and streak counter
+- [ ] Add `TimerNode` - countdown timer with visual effects
 
 ### Step 2.3: Game Logic Integration
 
-- [x] Connect existing `GameSession` model to SpriteKit scene
-- [x] Implement touch handling for answer selection
-- [x] Add question generation and display logic
-- [x] Create answer validation with visual feedback
+- [ ] Connect existing `GameSession` model to SpriteKit scene
+- [ ] Implement touch handling for answer selection
+- [ ] Add question generation and display logic
+- [ ] Create answer validation with visual feedback
 
 ### Step 2.4: Animations & Effects
 
