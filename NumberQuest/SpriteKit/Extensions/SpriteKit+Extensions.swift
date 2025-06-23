@@ -219,16 +219,6 @@ extension SKSpriteNode {
 
 extension UIColor {
     
-    /// NumberQuest color palette
-    static let nqBlue = UIColor(red: 0.1, green: 0.2, blue: 0.8, alpha: 1.0)
-    static let nqPurple = UIColor(red: 0.3, green: 0.1, blue: 0.7, alpha: 1.0)
-    static let nqPink = UIColor(red: 0.7, green: 0.2, blue: 0.9, alpha: 1.0)
-    static let nqCoral = UIColor(red: 0.9, green: 0.4, blue: 0.6, alpha: 1.0)
-    static let nqMint = UIColor(red: 0.4, green: 0.9, blue: 0.8, alpha: 1.0)
-    static let nqYellow = UIColor(red: 1.0, green: 0.8, blue: 0.2, alpha: 1.0)
-    static let nqOrange = UIColor(red: 1.0, green: 0.5, blue: 0.2, alpha: 1.0)
-    static let nqGreen = UIColor(red: 0.2, green: 0.8, blue: 0.4, alpha: 1.0)
-    
     /// Create color with hex string
     convenience init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)

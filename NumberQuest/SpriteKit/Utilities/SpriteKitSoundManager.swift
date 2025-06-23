@@ -259,11 +259,11 @@ class SpriteKitSoundManager {
         case .wrongAnswer:
             soundManager.playSound(.incorrect)
         case .buttonPress:
-            soundManager.playSound(.button)
+            soundManager.playSound(.buttonTap)
         case .levelComplete:
             soundManager.playSound(.levelComplete)
         default:
-            soundManager.playSound(.button) // Default fallback
+            soundManager.playSound(.buttonTap) // Default fallback
         }
     }
     
@@ -280,9 +280,11 @@ class SpriteKitSoundManager {
         playBackgroundMusic(musicType)
         
         if let musicNode = backgroundMusicNode {
-            musicNode.volume = 0.0
+            // Set initial volume to 0 using action, then fade in
+            let setVolumeAction = SKAction.changeVolume(to: 0.0, duration: 0.0)
             let fadeAction = SKAction.changeVolume(to: 1.0, duration: duration)
-            musicNode.run(fadeAction)
+            let sequence = SKAction.sequence([setVolumeAction, fadeAction])
+            musicNode.run(sequence)
         }
     }
     

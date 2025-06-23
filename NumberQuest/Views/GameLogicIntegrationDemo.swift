@@ -89,7 +89,7 @@ struct GameLogicIntegrationDemo: View {
     }
 }
 
-struct FeatureRow: View {
+private struct FeatureRow: View {
     let title: String
     let description: String
     
