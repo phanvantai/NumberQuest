@@ -246,29 +246,6 @@ class QuickPlayScene: BaseScene {
     }
 }
 
-class GameScene: BaseScene {
-    let gameMode: GameMode
-    let level: GameLevel?
-    
-    init(gameMode: GameMode, level: GameLevel?) {
-        self.gameMode = gameMode
-        self.level = level
-        super.init(size: .zero)
-    }
-    
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    override func setupContent() {
-        let label = SKLabelNode(text: "Game Scene")
-        label.fontSize = 32
-        label.fontColor = .white
-        label.position = CGPoint(x: 0, y: 0)
-        addChild(label)
-    }
-}
-
 class GameOverScene: BaseScene {
     let results: GameResults
     
