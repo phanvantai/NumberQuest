@@ -106,6 +106,24 @@ class GameSession: ObservableObject {
     private var timer: Timer?
     private var questionGenerator = QuestionGenerator()
     
+    func setupLevel(_ level: GameLevel) {
+        currentLevel = level
+        gameMode = .campaign
+        
+        // Initialize game state
+        score = 0
+        streak = 0
+        questionsAnswered = 0
+        correctAnswers = 0
+        isGameActive = false
+        
+        // No timer for campaign mode (it's question-based)
+        timeRemaining = 0
+        
+        // Generate first question
+        generateNewQuestion()
+    }
+    
     func startGame(mode: GameMode, level: GameLevel? = nil) {
         gameMode = mode
         currentLevel = level

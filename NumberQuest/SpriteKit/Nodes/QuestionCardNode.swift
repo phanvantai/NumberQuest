@@ -178,6 +178,66 @@ class QuestionCardNode: SKNode {
         run(appearSequence)
     }
     
+    /// Enhanced question reveal animation with particles
+    func animateInWithParticles(delay: TimeInterval = 0.0) {
+        // Start invisible and scaled down
+        alpha = 0
+        setScale(0.1)
+        
+        // Create sparkle entrance effect
+        let particleCount = 8
+        for i in 0..<particleCount {
+            let sparkle = SKLabelNode()
+            sparkle.text = "✨"
+            sparkle.fontSize = 14
+            sparkle.alpha = 0
+            sparkle.zPosition = 10
+            
+            // Position sparkles around the card
+            let angle = (CGFloat.pi * 2 / CGFloat(particleCount)) * CGFloat(i)
+            let radius: CGFloat = cardSize.width / 2 + 20
+            sparkle.position = CGPoint(
+                x: cos(angle) * radius,
+                y: sin(angle) * radius
+            )
+            
+            addChild(sparkle)
+            
+            // Animate sparkles spiraling in
+            let spiralIn = SKAction.move(to: CGPoint.zero, duration: 0.6)
+            let sparkleIn = SKAction.fadeIn(withDuration: 0.3)
+            let sparkleOut = SKAction.fadeOut(withDuration: 0.3)
+            let remove = SKAction.removeFromParent()
+            
+            let sparkleAnimation = SKAction.sequence([
+                SKAction.wait(forDuration: delay + Double(i) * 0.05),
+                SKAction.group([spiralIn, sparkleIn]),
+                sparkleOut,
+                remove
+            ])
+            
+            sparkle.run(sparkleAnimation)
+        }
+        
+        // Main card entrance
+        let wait = SKAction.wait(forDuration: delay + 0.2)
+        let fadeIn = SKAction.fadeIn(withDuration: 0.4)
+        let scaleUp = SKAction.scale(to: 1.0, duration: 0.5)
+        scaleUp.timingMode = .easeOut
+        
+        let bounceScale = SKAction.scale(to: 1.05, duration: 0.1)
+        let bounceBack = SKAction.scale(to: 1.0, duration: 0.1)
+        let bounce = SKAction.sequence([bounceScale, bounceBack])
+        
+        let appearSequence = SKAction.sequence([
+            wait,
+            SKAction.group([fadeIn, scaleUp]),
+            bounce
+        ])
+        
+        run(appearSequence)
+    }
+    
     /// Animate the card disappearing
     func animateOut(completion: @escaping () -> Void = {}) {
         let scaleDown = SKAction.scale(to: 0.1, duration: 0.2)
@@ -221,32 +281,68 @@ class QuestionCardNode: SKNode {
         run(combinedAnimation)
     }
     
-    /// Glow animation for correct answers
-    func glowForCorrectAnswer() {
+    /// Enhanced glow effect with color cycling
+    func glowForCorrectAnswerEnhanced() {
         let originalColor = backgroundCard.fillColor
-        let successColor = SpriteKitColors.UI.successOverlay
         
-        // Create pulsing glow effect
-        let colorChange = SKAction.run {
-            self.backgroundCard.fillColor = successColor
+        // Create multi-color glow sequence
+        let colors: [UIColor] = [
+            SpriteKitColors.UI.successOverlay,
+            UIColor.cyan,
+            UIColor.yellow,
+            originalColor
+        ]
+        
+        var colorActions: [SKAction] = []
+        for (index, color) in colors.enumerated() {
+            let colorChange = SKAction.run {
+                self.backgroundCard.fillColor = color
+            }
+            let wait = SKAction.wait(forDuration: 0.2)
+            colorActions.append(SKAction.sequence([colorChange, wait]))
+            
+            // Add scale pulse for each color
+            if index < colors.count - 1 {
+                let pulse = SKAction.scale(to: 1.02, duration: 0.1)
+                let restore = SKAction.scale(to: 1.0, duration: 0.1)
+                let pulseSequence = SKAction.sequence([pulse, restore])
+                colorActions.append(pulseSequence)
+            }
         }
-        let colorRestore = SKAction.run {
-            self.backgroundCard.fillColor = originalColor
+        
+        let glowSequence = SKAction.sequence(colorActions)
+        run(glowSequence)
+        
+        // Add floating sparkles
+        for i in 0..<6 {
+            let sparkle = SKLabelNode()
+            sparkle.text = ["✨", "⭐", "💫"].randomElement()!
+            sparkle.fontSize = 16
+            sparkle.alpha = 0
+            sparkle.zPosition = 20
+            
+            sparkle.position = CGPoint(
+                x: CGFloat.random(in: -cardSize.width/2...cardSize.width/2),
+                y: CGFloat.random(in: -cardSize.height/2...cardSize.height/2)
+            )
+            
+            addChild(sparkle)
+            
+            let delay = SKAction.wait(forDuration: Double(i) * 0.1)
+            let sparkleIn = SKAction.fadeIn(withDuration: 0.3)
+            let floatUp = SKAction.moveBy(x: 0, y: 40, duration: 1.0)
+            let sparkleOut = SKAction.fadeOut(withDuration: 0.5)
+            let cleanup = SKAction.removeFromParent()
+            
+            let sparkleSequence = SKAction.sequence([
+                delay,
+                sparkleIn,
+                SKAction.group([floatUp, sparkleOut]),
+                cleanup
+            ])
+            
+            sparkle.run(sparkleSequence)
         }
-        
-        let scaleUp = SKAction.scale(to: 1.05, duration: 0.15)
-        let scaleDown = SKAction.scale(to: 1.0, duration: 0.15)
-        
-        let colorSequence = SKAction.sequence([
-            colorChange,
-            SKAction.wait(forDuration: 0.3),
-            colorRestore
-        ])
-        
-        let scaleSequence = SKAction.sequence([scaleUp, scaleDown])
-        
-        let glowAnimation = SKAction.group([colorSequence, scaleSequence])
-        run(glowAnimation)
     }
     
     // MARK: - Private Animation Methods

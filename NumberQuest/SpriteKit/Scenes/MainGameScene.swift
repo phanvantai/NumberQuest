@@ -173,18 +173,19 @@ class MainGameScene: BaseGameScene {
             return
         }
         
-        // Update question card with new question
+        // Update question card with new question using enhanced animation
         let questionText = "\(question.firstNumber) \(question.operation.symbol) \(question.secondNumber) = ?"
         questionCard?.setQuestion(questionText)
+        questionCard?.animateInWithParticles(delay: 0.1)
         
-        // Create answer buttons
+        // Create answer buttons with enhanced animations
         createAnswerButtons(for: question)
         
         // Update UI with latest game session values
         updateUI()
         
-        // Enable interaction after a brief delay to prevent accidental taps
-        let enableDelay = SKAction.wait(forDuration: 0.5)
+        // Enable interaction after animation completes
+        let enableDelay = SKAction.wait(forDuration: 1.0)
         let enableButtons = SKAction.run { [weak self] in
             self?.enableAnswerButtons()
         }
@@ -221,7 +222,7 @@ class MainGameScene: BaseGameScene {
             // Start disabled to prevent premature tapping
             button.isUserInteractionEnabled = false
             
-            // Animate button appearance
+            // Animate button appearance with enhanced effects
             button.alpha = 0
             button.setScale(0.8)
             let delay = SKAction.wait(forDuration: Double(index) * 0.1)
@@ -229,7 +230,12 @@ class MainGameScene: BaseGameScene {
             let scaleUp = SKAction.scale(to: 1.0, duration: 0.2)
             let appear = SKAction.group([fadeIn, scaleUp])
             
-            button.run(SKAction.sequence([delay, appear]))
+            // Add bounce effect after appear
+            let bounce = SKAction.run {
+                button.bounceWithTrail()
+            }
+            
+            button.run(SKAction.sequence([delay, appear, SKAction.wait(forDuration: 0.1), bounce]))
             
             answerButtons.append(button)
             addChild(button)
@@ -258,11 +264,24 @@ class MainGameScene: BaseGameScene {
             // Show particle effect at question position
             playCorrectAnswerEffect(at: questionCard?.position ?? CGPoint(x: frame.midX, y: frame.midY))
             
-            // Animate score increase
-            animateScoreIncrease()
+            // Enhanced score increase with floating effects
+            let scoreIncrease = gameSession.getPointsForAnswer()
+            createFloatingScoreEffect(
+                points: scoreIncrease, 
+                startPosition: scoreDisplay?.position ?? CGPoint(x: frame.midX, y: frame.maxY - 120)
+            )
+            
+            // Show streak celebration for significant streaks
+            if gameSession.streak >= 3 {
+                showStreakCelebration()
+            }
             
         } else {
-            showWrongAnswerFeedback()
+            // Enhanced wrong answer feedback
+            enhancedWrongAnswerFeedback()
+            
+            // Show error feedback on question card
+            questionCard?.shakeForWrongAnswer()
             
             // Play error sound and haptic
             playSound(.incorrect, haptic: .error)
@@ -277,17 +296,45 @@ class MainGameScene: BaseGameScene {
         // Update UI with new values from game session
         updateUI()
         
-        // Wait for feedback to complete, then continue
+        // Wait for feedback to complete, then continue with enhanced transition
         let feedbackDuration: TimeInterval = correct ? 1.2 : 1.8
         let delay = SKAction.wait(forDuration: feedbackDuration)
         let nextAction = SKAction.run { [weak self] in
-            self?.proceedToNextQuestion()
+            self?.checkGameContinuation()
         }
         
         run(SKAction.sequence([delay, nextAction]))
     }
     
-    // The checkGameContinuation method has been replaced with proceedToNextQuestion for better logic flow
+    private func checkGameContinuation() {
+        // Check if the game should continue based on game session state
+        if !gameSession.isGameActive {
+            endGame()
+            return
+        }
+        
+        // Check time limit for quick play
+        if gameSession.gameMode == .quickPlay && gameSession.timeRemaining <= 0 {
+            endGame()
+            return
+        }
+        
+        // Check question limit for campaign mode
+        if let level = gameSession.currentLevel,
+           gameSession.questionsAnswered >= level.maxQuestions {
+            endGame()
+            return
+        }
+        
+        // Continue with enhanced question transition
+        animateQuestionTransition()
+    }
+    
+    private func proceedToNextQuestion() {
+        // This method is now replaced by checkGameContinuation() and animateQuestionTransition()
+        // for better separation of concerns and enhanced visual effects
+        checkGameContinuation()
+    }
     
     private func endGame() {
         // Disable all interactions immediately
@@ -334,8 +381,8 @@ class MainGameScene: BaseGameScene {
     // MARK: - Feedback Effects
     
     private func showCorrectAnswerFeedback() {
-        // Show success feedback on question card
-        questionCard?.glowForCorrectAnswer()
+        // Show enhanced success feedback on question card
+        questionCard?.glowForCorrectAnswerEnhanced()
         
         // Subtle zoom effect for positive feedback
         zoomCamera(to: 1.05, duration: 0.2)
@@ -470,6 +517,192 @@ class MainGameScene: BaseGameScene {
         }
     }
     
+    // MARK: - Enhanced Animation Effects for Step 2.4
+    
+    /// Enhanced celebration animation for high streaks
+    private func showStreakCelebration() {
+        guard gameSession.streak >= 3 else { return }
+        
+        // Create streak milestone celebration
+        let streakText = SKLabelNode()
+        streakText.text = "🔥 \(gameSession.streak) STREAK! 🔥"
+        streakText.fontName = "Baloo2-VariableFont_wght"
+        streakText.fontSize = 32
+        streakText.fontColor = SpriteKitColors.Text.success
+        streakText.position = CGPoint(x: frame.midX, y: frame.midY + 50)
+        streakText.zPosition = 1000
+        streakText.alpha = 0
+        streakText.setScale(0.1)
+        
+        addChild(streakText)
+        
+        // Animate in with bounce
+        let scaleUp = SKAction.scale(to: 1.2, duration: 0.3)
+        let scaleDown = SKAction.scale(to: 1.0, duration: 0.2)
+        let bounce = SKAction.sequence([scaleUp, scaleDown])
+        
+        let fadeIn = SKAction.fadeIn(withDuration: 0.3)
+        let wait = SKAction.wait(forDuration: 1.0)
+        let fadeOut = SKAction.fadeOut(withDuration: 0.5)
+        let remove = SKAction.removeFromParent()
+        
+        let animationSequence = SKAction.sequence([
+            SKAction.group([fadeIn, bounce]),
+            wait,
+            fadeOut,
+            remove
+        ])
+        
+        streakText.run(animationSequence)
+        
+        // Add particle burst for major streaks
+        if gameSession.streak >= 5 {
+            playCelebrationEffect(at: CGPoint(x: frame.midX, y: frame.midY))
+        }
+        
+        // Play special streak sound
+        playSound(.correct, haptic: .success)
+    }
+    
+    /// Smooth question transition with enhanced effects
+    private func animateQuestionTransition() {
+        // Fade out current question and buttons
+        let fadeOutDuration: TimeInterval = 0.2
+        
+        // Question card fade
+        let questionFadeOut = SKAction.fadeAlpha(to: 0.3, duration: fadeOutDuration)
+        let questionScale = SKAction.scale(to: 0.95, duration: fadeOutDuration)
+        let questionAnimation = SKAction.group([questionFadeOut, questionScale])
+        
+        questionCard?.run(questionAnimation)
+        
+        // Answer buttons cascade out
+        for (index, button) in answerButtons.enumerated() {
+            let delay = SKAction.wait(forDuration: Double(index) * 0.05)
+            let fadeOut = SKAction.fadeOut(withDuration: 0.15)
+            let scaleDown = SKAction.scale(to: 0.8, duration: 0.15)
+            let buttonAnimation = SKAction.sequence([
+                delay,
+                SKAction.group([fadeOut, scaleDown])
+            ])
+            button.run(buttonAnimation)
+        }
+        
+        // Wait for fade out, then present new question
+        let totalTransitionTime = fadeOutDuration + 0.3
+        let waitAction = SKAction.wait(forDuration: totalTransitionTime)
+        let presentAction = SKAction.run { [weak self] in
+            self?.presentNextQuestion()
+        }
+        
+        run(SKAction.sequence([waitAction, presentAction]))
+    }
+    
+    /// Enhanced floating score animation with trail effect
+    private func createFloatingScoreEffect(points: Int, startPosition: CGPoint) {
+        let container = SKNode()
+        container.position = startPosition
+        container.zPosition = 1000
+        addChild(container)
+        
+        // Main score text
+        let scoreLabel = SKLabelNode()
+        scoreLabel.text = "+\(points)"
+        scoreLabel.fontName = "Baloo2-VariableFont_wght"
+        scoreLabel.fontSize = 28
+        scoreLabel.fontColor = SpriteKitColors.Text.success
+        
+        // Shadow text for depth
+        let shadowLabel = SKLabelNode()
+        shadowLabel.text = "+\(points)"
+        shadowLabel.fontName = "Baloo2-VariableFont_wght"
+        shadowLabel.fontSize = 28
+        shadowLabel.fontColor = UIColor.black.withAlphaComponent(0.3)
+        shadowLabel.position = CGPoint(x: 2, y: -2)
+        shadowLabel.zPosition = -1
+        
+        container.addChild(shadowLabel)
+        container.addChild(scoreLabel)
+        
+        // Create sparkle trail
+        for i in 0..<5 {
+            let sparkle = SKLabelNode()
+            sparkle.text = "✨"
+            sparkle.fontSize = 16
+            sparkle.position = CGPoint(x: CGFloat.random(in: -20...20), y: CGFloat.random(in: -10...10))
+            sparkle.alpha = 0
+            sparkle.zPosition = 999
+            
+            container.addChild(sparkle)
+            
+            // Animate sparkles
+            let delay = SKAction.wait(forDuration: Double(i) * 0.1)
+            let sparkleIn = SKAction.fadeIn(withDuration: 0.2)
+            let sparkleOut = SKAction.fadeOut(withDuration: 0.5)
+            let sparkleMove = SKAction.moveBy(x: CGFloat.random(in: -30...30), y: CGFloat.random(in: 20...40), duration: 0.7)
+            let sparkleSequence = SKAction.sequence([
+                delay,
+                SKAction.group([sparkleIn, sparkleMove]),
+                sparkleOut
+            ])
+            
+            sparkle.run(sparkleSequence)
+        }
+        
+        // Main text animation
+        let moveUp = SKAction.moveBy(x: 0, y: 80, duration: 1.2)
+        let fadeOut = SKAction.fadeOut(withDuration: 1.2)
+        let scaleUp = SKAction.scale(to: 1.3, duration: 0.3)
+        let scaleDown = SKAction.scale(to: 1.0, duration: 0.9)
+        
+        let scaleAnimation = SKAction.sequence([scaleUp, scaleDown])
+        let mainAnimation = SKAction.group([moveUp, fadeOut, scaleAnimation])
+        let cleanup = SKAction.removeFromParent()
+        
+        container.run(SKAction.sequence([mainAnimation, cleanup]))
+    }
+    
+    /// Enhanced wrong answer feedback with visual impact
+    private func enhancedWrongAnswerFeedback() {
+        // Enhanced camera shake with rotation
+        let originalPosition = gameCamera?.position ?? CGPoint.zero
+        let shakeIntensity: CGFloat = 12.0
+        
+        let shakeActions = [
+            SKAction.move(by: CGVector(dx: shakeIntensity, dy: 0), duration: 0.04),
+            SKAction.move(by: CGVector(dx: -shakeIntensity * 2, dy: shakeIntensity), duration: 0.04),
+            SKAction.move(by: CGVector(dx: shakeIntensity, dy: -shakeIntensity * 2), duration: 0.04),
+            SKAction.move(by: CGVector(dx: 0, dy: shakeIntensity), duration: 0.04),
+            SKAction.move(to: originalPosition, duration: 0.08)
+        ]
+        
+        gameCamera?.run(SKAction.sequence(shakeActions))
+        
+        // Red flash overlay
+        let flashOverlay = SKShapeNode(rect: frame)
+        flashOverlay.fillColor = UIColor.red.withAlphaComponent(0.3)
+        flashOverlay.strokeColor = .clear
+        flashOverlay.zPosition = 900
+        flashOverlay.alpha = 0
+        
+        addChild(flashOverlay)
+        
+        let flashIn = SKAction.fadeIn(withDuration: 0.1)
+        let flashOut = SKAction.fadeOut(withDuration: 0.3)
+        let removeFlash = SKAction.removeFromParent()
+        
+        flashOverlay.run(SKAction.sequence([flashIn, flashOut, removeFlash]))
+        
+        // Momentary desaturation effect
+        backgroundAnimationNodes.forEach { node in
+            if let sprite = node as? SKSpriteNode {
+                let desaturate = SKAction.colorize(with: .gray, colorBlendFactor: 0.5, duration: 0.1)
+                let restore = SKAction.colorize(withColorBlendFactor: 0.0, duration: 0.4)
+                sprite.run(SKAction.sequence([desaturate, restore]))
+            }
+        }
+    }
+    
     // MARK: - UI Updates
     
     private func updateUI() {
@@ -482,29 +715,5 @@ class MainGameScene: BaseGameScene {
         if gameSession.gameMode == .quickPlay {
             timerNode?.setTimeRemaining(TimeInterval(gameSession.timeRemaining))
         }
-    }
-    
-    private func proceedToNextQuestion() {
-        // Check if the game should continue based on game session state
-        if !gameSession.isGameActive {
-            endGame()
-            return
-        }
-        
-        // Check time limit for quick play
-        if gameSession.gameMode == .quickPlay && gameSession.timeRemaining <= 0 {
-            endGame()
-            return
-        }
-        
-        // Check question limit for campaign mode
-        if let level = gameSession.currentLevel,
-           gameSession.questionsAnswered >= level.maxQuestions {
-            endGame()
-            return
-        }
-        
-        // Continue with next question
-        presentNextQuestion()
     }
 }

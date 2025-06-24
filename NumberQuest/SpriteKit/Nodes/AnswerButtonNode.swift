@@ -16,7 +16,7 @@ class AnswerButtonNode: SKNode {
     private var backgroundShape: SKShapeNode!
     private var answerLabel: SKLabelNode!
     private var shadowNode: SKShapeNode!
-    private var glowNode: SKShapeNode?
+    private var glowNode: SKNode?
     
     private let buttonSize: CGSize
     private var answerText: String = ""
@@ -296,18 +296,18 @@ class AnswerButtonNode: SKNode {
     private func addGlowEffect() {
         removeGlowEffect() // Remove existing glow
         
-      glowNode = SKShapeNode(rect: CGRect(
+        let glowShape = SKShapeNode(rect: CGRect(
             x: -buttonSize.width / 2 - 5,
             y: -buttonSize.height / 2 - 5,
             width: buttonSize.width + 10,
             height: buttonSize.height + 10
         ), cornerRadius: 20)
         
-        glowNode!.fillColor = .clear
-        glowNode!.strokeColor = SpriteKitColors.UI.answerCorrect
-        glowNode!.lineWidth = 3
-        glowNode!.alpha = 0.7
-        glowNode!.zPosition = -0.5
+        glowShape.fillColor = .clear
+        glowShape.strokeColor = SpriteKitColors.UI.answerCorrect
+        glowShape.lineWidth = 3
+        glowShape.alpha = 0.7
+        glowShape.zPosition = -0.5
         
         // Pulsing animation
         let fadeOut = SKAction.fadeAlpha(to: 0.3, duration: 0.5)
@@ -315,8 +315,11 @@ class AnswerButtonNode: SKNode {
         let pulse = SKAction.sequence([fadeOut, fadeIn])
         let pulseForever = SKAction.repeatForever(pulse)
         
-        glowNode!.run(pulseForever)
-        addChild(glowNode!)
+        glowShape.run(pulseForever)
+        addChild(glowShape)
+        
+        // Store reference for removal
+        glowNode = glowShape
     }
     
     private func removeGlowEffect() {
@@ -340,5 +343,90 @@ extension AnswerButtonNode {
         let buttonSize = CGSize(width: 160, height: 80)
         let button = AnswerButtonNode(size: buttonSize, answer: answer, isCorrect: isCorrect)
         return button
+    }
+}
+
+// MARK: - Enhanced Answer Button Animations
+
+extension AnswerButtonNode {
+    /// Add pulsing glow animation for dramatic effect
+    func addPulsingGlow() {
+        // Remove any existing glow first
+        removeGlowEffect()
+        
+        // Create enhanced glow effect
+        let glowNode = self.copy() as! AnswerButtonNode
+        glowNode.alpha = 0.8
+        glowNode.setScale(1.1)
+        glowNode.zPosition = self.zPosition - 1
+        glowNode.backgroundShape.fillColor = UIColor.cyan
+        glowNode.backgroundShape.strokeColor = .clear
+        
+        // Add blur effect for better glow
+        let blur = SKEffectNode()
+        blur.shouldRasterize = true
+        blur.filter = CIFilter(name: "CIGaussianBlur", parameters: ["inputRadius": 8])
+        blur.addChild(glowNode)
+        
+        if let parent = self.parent {
+            parent.addChild(blur)
+        }
+        
+        // Pulsing animation
+        let pulseIn = SKAction.scale(to: 1.15, duration: 0.6)
+        let pulseOut = SKAction.scale(to: 1.05, duration: 0.6)
+        let pulse = SKAction.sequence([pulseIn, pulseOut])
+        let pulsing = SKAction.repeatForever(pulse)
+        
+        blur.run(pulsing)
+        
+        // Store reference for removal
+        self.glowNode = blur
+    }
+    
+    /// Enhanced bounce animation with trail effect
+    func bounceWithTrail() {
+        let originalPosition = position
+        
+        // Main bounce
+        let bounceUp = SKAction.moveBy(x: 0, y: 15, duration: 0.15)
+        bounceUp.timingMode = .easeOut
+        let bounceDown = SKAction.move(to: originalPosition, duration: 0.15)
+        bounceDown.timingMode = .easeIn
+        
+        let scaleUp = SKAction.scale(to: 1.1, duration: 0.15)
+        let scaleDown = SKAction.scale(to: 1.0, duration: 0.15)
+        
+        let bounceAnimation = SKAction.group([
+            SKAction.sequence([bounceUp, bounceDown]),
+            SKAction.sequence([scaleUp, scaleDown])
+        ])
+        
+        run(bounceAnimation)
+        
+        // Create particle trail
+        for i in 0..<3 {
+            let trail = SKLabelNode()
+            trail.text = "💫"
+            trail.fontSize = 12
+            trail.position = position
+            trail.zPosition = 999
+            trail.alpha = 0.7
+            
+            parent?.addChild(trail)
+            
+            let delay = SKAction.wait(forDuration: Double(i) * 0.05)
+            let trailMove = SKAction.moveBy(x: CGFloat.random(in: -20...20), y: 30, duration: 0.8)
+            let trailFade = SKAction.fadeOut(withDuration: 0.8)
+            let trailCleanup = SKAction.removeFromParent()
+            
+            let trailSequence = SKAction.sequence([
+                delay,
+                SKAction.group([trailMove, trailFade]),
+                trailCleanup
+            ])
+            
+            trail.run(trailSequence)
+        }
     }
 }
