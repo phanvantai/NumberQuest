@@ -7,6 +7,9 @@
 
 import SwiftUI
 
+// TEMPORARY: Import for SpriteKit demo
+// This will be removed once we fully convert to SpriteKit
+
 struct MainMenuView: View {
     @StateObject private var gameData = GameData.shared
     @State private var selectedTab = 0
@@ -143,6 +146,21 @@ struct MainMenuView: View {
                                 )
                             }
                             .buttonStyle(PlainButtonStyle())
+                            
+                            // TEMPORARY: SpriteKit Demo Button - Commented out for now
+                            /*
+                            NavigationLink(destination: SpriteKitDemoView()) {
+                                GameModeButton(
+                                    title: "🎮 SpriteKit Demo",
+                                    subtitle: "Phase 1.1 Complete ✅",
+                                    description: "Test the new SpriteKit foundation!",
+                                    primaryColor: .purple,
+                                    secondaryColor: .pink,
+                                    icon: "gamecontroller.fill"
+                                )
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            */
                         }
                         
                         // Add some bottom padding to ensure content is not cut off

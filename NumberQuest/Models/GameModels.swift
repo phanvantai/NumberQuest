@@ -177,7 +177,7 @@ class GameSession: ObservableObject {
         }
     }
     
-    private func endGame() {
+    func endGame() {
         timer?.invalidate()
         timer = nil
         isGameActive = false
@@ -207,7 +207,7 @@ class GameSession: ObservableObject {
         }
     }
     
-    private func getPointsForAnswer() -> Int {
+    func getPointsForAnswer() -> Int {
         let basePoints = 10
         let streakBonus = min(streak * 2, 20)
         let difficultyMultiplier = currentQuestion?.difficulty == .hard ? 3 : 
@@ -227,6 +227,17 @@ class GameSession: ObservableObject {
         if let data = UserDefaults.standard.data(forKey: "PlayerProgress"),
            let decoded = try? JSONDecoder().decode(PlayerProgress.self, from: data) {
             playerProgress = decoded
+        }
+    }
+    
+    func pauseInternalTimer() {
+        timer?.invalidate()
+        timer = nil
+    }
+    
+    func resumeInternalTimer() {
+        if gameMode == .quickPlay && isGameActive {
+            startTimer()
         }
     }
 }
