@@ -14,6 +14,18 @@ class ParticleManager {
     
     private var particleCache: [String: SKEmitterNode] = [:]
     
+    // MARK: - Settings Control Properties
+    
+    /// Particle quality levels for performance optimization
+    enum ParticleQuality {
+        case low
+        case medium
+        case high
+    }
+    
+    private var currentQuality: ParticleQuality = .high
+    private var particleEffectsEnabled: Bool = true
+    
     private init() {}
     
     /// Load and cache a particle effect
@@ -60,7 +72,11 @@ class ParticleManager {
     ///   - scene: The scene to add the effect to
     ///   - duration: How long to let the effect run before removing it
     func playEffect(_ effect: SKEmitterNode?, at position: CGPoint, in scene: SKScene, duration: TimeInterval = 3.0) {
-        guard let effect = effect else { return }
+        guard let effect = effect,
+              particleEffectsEnabled else { return }
+        
+        // Apply quality settings to the effect
+        applyQualityToEffect(effect)
         
         effect.position = position
         effect.zPosition = 1000 // High z-position to appear above other elements
@@ -74,6 +90,13 @@ class ParticleManager {
         ])
         
         effect.run(removeAction)
+    }
+    
+    /// Apply current quality settings to a particle effect
+    private func applyQualityToEffect(_ effect: SKEmitterNode) {
+        // Apply quality-based modifications
+        effect.particleBirthRate = getBirthRate(base: effect.particleBirthRate)
+        effect.numParticlesToEmit = Int(getParticleCount(base: CGFloat(effect.numParticlesToEmit)))
     }
     
     /// Create a fallback particle effect when loading fails
@@ -189,6 +212,56 @@ class ParticleManager {
     /// Clear the particle cache to free memory
     func clearCache() {
         particleCache.removeAll()
+    }
+    
+    // MARK: - Settings Control Methods
+    
+    /// Set the particle quality level
+    /// - Parameter quality: The quality level to set
+    func setParticleQuality(_ quality: ParticleQuality) {
+        currentQuality = quality
+        applyQualitySettings()
+    }
+    
+    /// Enable or disable particle effects
+    /// - Parameter enabled: Whether particle effects should be enabled
+    func setParticleEffectsEnabled(_ enabled: Bool) {
+        particleEffectsEnabled = enabled
+    }
+    
+    /// Check if particle effects are enabled
+    var areParticleEffectsEnabled: Bool {
+        return particleEffectsEnabled
+    }
+    
+    /// Apply quality settings to particle effects
+    private func applyQualitySettings() {
+        // Clear cache so new effects use the updated quality settings
+        clearCache()
+    }
+    
+    /// Get the appropriate particle count based on current quality
+    private func getParticleCount(base: CGFloat) -> CGFloat {
+        switch currentQuality {
+        case .low:
+            return base * 0.3
+        case .medium:
+            return base * 0.6
+        case .high:
+            return base
+        }
+    }
+    
+    /// Get the appropriate particle birth rate based on current quality
+    private func getBirthRate(base: CGFloat) -> CGFloat {
+        switch currentQuality {
+        case .low:
+            return base * 0.4
+        case .medium:
+            return base * 0.7
+        case .high:
+            return base
+        }
     }
 }
 

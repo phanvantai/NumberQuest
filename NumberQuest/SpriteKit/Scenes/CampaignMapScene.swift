@@ -29,6 +29,9 @@ class CampaignMapScene: BaseGameScene {
     override func setupScene() {
         super.setupScene()
         
+        // Validate data integrity before displaying levels
+        gameData.validateDataIntegrity()
+        
         // Setup scrollable container for levels
         setupScrollableContainer()
         
@@ -104,12 +107,7 @@ class CampaignMapScene: BaseGameScene {
     }
     
     private func setupBackButton() {
-        backButton = NodeFactory.shared.createButton(
-            text: "← Menu",
-            size: CGSize(width: 120, height: 50),
-            backgroundColor: UIColor.white.withAlphaComponent(0.2),
-            textColor: .white
-        ) { [weak self] in
+        backButton = GameButtonNode.backButton { [weak self] in
             self?.handleBackButtonTapped()
         }
         
@@ -398,15 +396,24 @@ class CampaignMapScene: BaseGameScene {
     }
     
     private func startLevel(_ level: GameLevel) {
-        // Play start sound
-        SpriteKitSoundManager.shared.playSound(.levelComplete)
-        
-        // Create game session
+        // Create a new game session for this level
         let gameSession = GameSession()
         gameSession.setupLevel(level)
         
-        // Transition to game scene
-        GameSceneManager.shared.presentScene(.game(gameSession))
+        // Ensure GameData is synchronized
+        gameSession.playerProgress = gameData.playerProgress
+        
+        // Transition to game scene with doorway effect
+        GameSceneManager.shared.presentScene(
+            .game(gameSession),
+            transitionType: .doorway,
+            showLoading: true
+        ) { [weak self] success in
+            if success {
+                // Dismiss level preview after successful transition
+                self?.dismissLevelPreview()
+            }
+        }
     }
     
     private func dismissLevelPreview() {
@@ -422,8 +429,8 @@ class CampaignMapScene: BaseGameScene {
         // Play back sound
         SpriteKitSoundManager.shared.playSound(.buttonTap)
         
-        // Transition back to main menu
-        GameSceneManager.shared.presentScene(.mainMenu)
+        // Use enhanced back navigation with effects
+        GameSceneManager.shared.goBack(withEffect: true)
     }
     
     // MARK: - Helper Methods

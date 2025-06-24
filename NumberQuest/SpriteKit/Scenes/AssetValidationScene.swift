@@ -47,10 +47,9 @@ class AssetValidationScene: BaseGameScene {
         // Back button
         let backButton = NodeFactory.shared.createButton(
             text: "Back to Menu",
-            size: CGSize(width: 200, height: 60),
-            backgroundColor: .systemBlue,
-            textColor: .white
-        ) { [weak self] in
+            style: .primary,
+            size: .medium
+        ) {
             GameSceneManager.shared.presentScene(.mainMenu)
         }
         backButton.position = position(x: 0.5, y: 0.1)

@@ -114,10 +114,8 @@ class DemoScene: BaseGameScene {
         // Test MainGameScene button
         let gameTestButton = NodeFactory.shared.createButton(
             text: "Test MainGameScene",
-            size: CGSize(width: 250, height: 50),
-            backgroundColor: UIColor.blue.withAlphaComponent(0.8),
-            textColor: .white,
-            cornerRadius: 15
+            style: .primary,
+            size: .large
         ) { [weak self] in
             self?.testMainGameScene()
         }
@@ -127,10 +125,8 @@ class DemoScene: BaseGameScene {
         // Test transitions button
         let transitionButton = NodeFactory.shared.createButton(
             text: "Test Scene Transitions",
-            size: CGSize(width: 250, height: 50),
-            backgroundColor: UIColor.green.withAlphaComponent(0.8),
-            textColor: .white,
-            cornerRadius: 15
+            style: .success,
+            size: .large
         ) { [weak self] in
             self?.testSceneTransition()
         }
@@ -141,8 +137,9 @@ class DemoScene: BaseGameScene {
         let progressBar = NodeFactory.shared.createProgressBar(
             size: CGSize(width: 280, height: 20),
             progress: 0.0,
-            backgroundColor: UIColor.gray.withAlphaComponent(0.3),
-            progressColor: .orange
+            style: .standard,
+            progressColor: .orange,
+            backgroundColor: UIColor.gray.withAlphaComponent(0.3)
         )
         progressBar.position = position(x: 0.5, y: 0.92)
         addChild(progressBar)

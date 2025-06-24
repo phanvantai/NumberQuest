@@ -108,6 +108,95 @@ class GameData: ObservableObject {
         }
     }
     
+    // MARK: - Enhanced SpriteKit Integration
+    
+    /// Validate and refresh data integrity
+    func validateDataIntegrity() {
+        // Ensure levels are properly unlocked based on current progress
+        var needsUpdate = false
+        
+        for i in 0..<levels.count {
+            let level = levels[i]
+            let shouldBeUnlocked = playerProgress.totalStars >= level.requiredStars
+            
+            if level.isUnlocked != shouldBeUnlocked {
+                levels[i] = GameLevel(
+                    id: level.id,
+                    name: level.name,
+                    description: level.description,
+                    requiredStars: level.requiredStars,
+                    maxQuestions: level.maxQuestions,
+                    allowedOperations: level.allowedOperations,
+                    difficulty: level.difficulty,
+                    isUnlocked: shouldBeUnlocked,
+                    starsEarned: level.starsEarned,
+                    imageName: level.imageName
+                )
+                needsUpdate = true
+            }
+        }
+        
+        if needsUpdate {
+            savePlayerProgress()
+        }
+    }
+    
+    /// Get next available level for progression
+    func getNextLevel() -> GameLevel? {
+        return levels.first { !$0.isUnlocked && playerProgress.totalStars >= $0.requiredStars }
+    }
+    
+    /// Get recommended level based on player progress
+    func getRecommendedLevel() -> GameLevel? {
+        // Find the first uncompleted level that's unlocked
+        let uncompletedLevels = levels.filter { $0.isUnlocked && !playerProgress.completedLevels.contains($0.id) }
+        return uncompletedLevels.first
+    }
+    
+    /// Reset all progress (for testing or new game)
+    func resetProgress() {
+        playerProgress = PlayerProgress()
+        
+        // Reset all levels except the first one
+        for i in 0..<levels.count {
+            let level = levels[i]
+            levels[i] = GameLevel(
+                id: level.id,
+                name: level.name,
+                description: level.description,
+                requiredStars: level.requiredStars,
+                maxQuestions: level.maxQuestions,
+                allowedOperations: level.allowedOperations,
+                difficulty: level.difficulty,
+                isUnlocked: level.id == 1, // Only first level unlocked
+                starsEarned: 0,
+                imageName: level.imageName
+            )
+        }
+        
+        savePlayerProgress()
+    }
+    
+    /// Get total game completion percentage
+    func getCompletionPercentage() -> Double {
+        let totalLevels = levels.count
+        let completedLevels = playerProgress.completedLevels.count
+        return totalLevels > 0 ? Double(completedLevels) / Double(totalLevels) * 100 : 0.0
+    }
+    
+    /// Get statistics for display
+    func getGameStatistics() -> GameStatistics {
+        return GameStatistics(
+            totalStars: playerProgress.totalStars,
+            completedLevels: playerProgress.completedLevels.count,
+            totalLevels: levels.count,
+            accuracy: playerProgress.accuracy,
+            bestStreak: playerProgress.bestStreak,
+            totalQuestions: playerProgress.totalQuestionsAnswered,
+            badges: playerProgress.badges
+        )
+    }
+    
     func unlockLevel(_ levelId: Int) {
         if let index = levels.firstIndex(where: { $0.id == levelId }) {
             levels[index] = GameLevel(
@@ -193,5 +282,84 @@ class GameData: ObservableObject {
         if playerProgress.accuracy >= 90 && playerProgress.totalQuestionsAnswered >= 50 && !playerProgress.badges.contains("Accuracy Expert") {
             earnBadge("Accuracy Expert")
         }
+    }
+    
+    // MARK: - Settings Support
+    
+    /// Reset the adaptive difficulty system to default values
+    func resetAdaptiveDifficulty() {
+        // Reset difficulty tracking in player progress
+        playerProgress.resetAdaptiveDifficulty()
+        savePlayerProgress()
+        objectWillChange.send()
+    }
+    
+    /// Reset all game progress (use with caution)
+    func resetAllProgress() {
+        playerProgress = PlayerProgress()
+        savePlayerProgress()
+        objectWillChange.send()
+    }
+    
+    /// Export progress data for backup or sharing
+    /// - Returns: A dictionary containing all progress data
+    func exportProgressData() -> [String: Any] {
+        var exportData: [String: Any] = [:]
+        
+        // Export player progress
+        exportData["playerProgress"] = [
+            "totalStars": playerProgress.totalStars,
+            "currentLevel": playerProgress.currentLevel,
+            "completedLevels": Array(playerProgress.completedLevels),
+            "totalQuestionsAnswered": playerProgress.totalQuestionsAnswered,
+            "correctAnswers": playerProgress.correctAnswers,
+            "accuracy": playerProgress.accuracy,
+            "streak": playerProgress.streak,
+            "bestStreak": playerProgress.bestStreak,
+            "badges": playerProgress.badges
+        ]
+        
+        // Export level completion data
+        exportData["levelCompletion"] = levels.enumerated().compactMap { index, level in
+            if level.isUnlocked || playerProgress.completedLevels.contains(level.id) {
+                return [
+                    "levelId": level.id,
+                    "isUnlocked": level.isUnlocked,
+                    "isCompleted": playerProgress.completedLevels.contains(level.id),
+                    "starsEarned": level.starsEarned
+                ]
+            }
+            return nil
+        }
+        
+        // Export metadata
+        exportData["metadata"] = [
+            "exportDate": Date().timeIntervalSince1970,
+            "version": "1.0.0",
+            "platform": "iOS"
+        ]
+        
+        return exportData
+    }
+}
+
+// MARK: - Game Statistics Model
+
+/// Statistics model for displaying game progress
+struct GameStatistics {
+    let totalStars: Int
+    let completedLevels: Int
+    let totalLevels: Int
+    let accuracy: Double
+    let bestStreak: Int
+    let totalQuestions: Int
+    let badges: [String]
+    
+    var completionPercentage: Double {
+        return totalLevels > 0 ? Double(completedLevels) / Double(totalLevels) * 100 : 0.0
+    }
+    
+    var averageStarsPerLevel: Double {
+        return completedLevels > 0 ? Double(totalStars) / Double(completedLevels) : 0.0
     }
 }

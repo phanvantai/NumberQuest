@@ -83,10 +83,23 @@ struct PlayerProgress: Codable {
     var streak: Int = 0
     var bestStreak: Int = 0
     var badges: [String] = []
+    var averageTimePerQuestion: Double = 10.0
     
     var accuracy: Double {
         guard totalQuestionsAnswered > 0 else { return 0.0 }
         return Double(correctAnswers) / Double(totalQuestionsAnswered) * 100
+    }
+    
+    // MARK: - Settings Support
+    
+    /// Reset adaptive difficulty tracking to default values
+    mutating func resetAdaptiveDifficulty() {
+        // Reset streaks and timing stats that affect difficulty
+        bestStreak = 0
+        averageTimePerQuestion = 10.0 // Reset to default
+        
+        // Could also reset difficulty-specific stats if they exist
+        // This allows the adaptive system to start fresh
     }
 }
 
@@ -105,6 +118,116 @@ class GameSession: ObservableObject {
     
     private var timer: Timer?
     private var questionGenerator = QuestionGenerator()
+    
+    // MARK: - Enhanced SpriteKit Integration
+    
+    /// Delegate for SpriteKit scene integration
+    weak var sceneDelegate: GameSessionDelegate?
+    
+    /// Pause internal timer to let SpriteKit handle timing
+    func pauseInternalTimer() {
+        timer?.invalidate()
+        timer = nil
+    }
+    
+    /// Resume internal timer for non-SpriteKit use
+    func resumeInternalTimer() {
+        if gameMode == .quickPlay && isGameActive && timeRemaining > 0 {
+            startTimer()
+        }
+    }
+    
+    /// Enhanced progress persistence integration
+    func syncWithGameData() {
+        // Sync current session progress with GameData.shared
+        GameData.shared.playerProgress = self.playerProgress
+        GameData.shared.savePlayerProgress()
+    }
+    
+    /// Update level completion and unlock logic
+    func completeLevel() {
+        guard let level = currentLevel else { return }
+        
+        let stars = calculateStarsEarned()
+        playerProgress.completedLevels.insert(level.id)
+        playerProgress.totalStars += stars
+        
+        // Update GameData with new progress
+        GameData.shared.addStarsToLevel(level.id, stars: stars)
+        GameData.shared.playerProgress = playerProgress
+        
+        // Check for level unlocks
+        checkLevelUnlocks()
+        
+        // Save progress
+        syncWithGameData()
+    }
+    
+    /// Calculate stars earned based on performance
+    private func calculateStarsEarned() -> Int {
+        let accuracy = questionsAnswered > 0 ? Double(correctAnswers) / Double(questionsAnswered) : 0.0
+        
+        if accuracy >= 0.9 && streak >= 5 {
+            return 3 // Perfect performance
+        } else if accuracy >= 0.8 {
+            return 2 // Good performance
+        } else if accuracy >= 0.6 {
+            return 1 // Passing performance
+        } else {
+            return 0 // No stars
+        }
+    }
+    
+    /// Check and unlock new levels based on stars
+    private func checkLevelUnlocks() {
+        let availableLevels = GameData.shared.levels
+        
+        for level in availableLevels {
+            if !level.isUnlocked && playerProgress.totalStars >= level.requiredStars {
+                GameData.shared.unlockLevel(level.id)
+            }
+        }
+    }
+    
+    /// Enhanced adaptive difficulty system
+    func getAdaptiveDifficulty() -> GameDifficulty {
+        let recentPerformance = calculateRecentPerformance()
+        
+        if recentPerformance >= 0.9 {
+            return getNextDifficulty()
+        } else if recentPerformance <= 0.6 {
+            return getPreviousDifficulty()
+        }
+        
+        return getDynamicDifficulty()
+    }
+    
+    private func calculateRecentPerformance() -> Double {
+        // Calculate performance over last 10 questions or current streak
+        let recentQuestions = min(10, questionsAnswered)
+        if recentQuestions == 0 { return 0.5 } // Neutral starting point
+        
+        let recentCorrect = min(correctAnswers, recentQuestions)
+        return Double(recentCorrect) / Double(recentQuestions)
+    }
+    
+    private func getNextDifficulty() -> GameDifficulty {
+        let current = getDynamicDifficulty()
+        switch current {
+        case .easy: return .medium
+        case .medium: return .hard
+        case .hard: return .hard // Cap at hard
+        }
+    }
+    
+    private func getPreviousDifficulty() -> GameDifficulty {
+        let current = getDynamicDifficulty()
+        switch current {
+        case .easy: return .easy // Cap at easy
+        case .medium: return .easy
+        case .hard: return .medium
+        }
+    }
     
     func setupLevel(_ level: GameLevel) {
         currentLevel = level
@@ -247,17 +370,6 @@ class GameSession: ObservableObject {
             playerProgress = decoded
         }
     }
-    
-    func pauseInternalTimer() {
-        timer?.invalidate()
-        timer = nil
-    }
-    
-    func resumeInternalTimer() {
-        if gameMode == .quickPlay && isGameActive {
-            startTimer()
-        }
-    }
 }
 
 // MARK: - Question Generator
@@ -318,4 +430,15 @@ class QuestionGenerator {
         
         return wrongAnswers
     }
+}
+
+// MARK: - Game Session Delegate Protocol
+
+/// Protocol for SpriteKit scenes to receive GameSession updates
+protocol GameSessionDelegate: AnyObject {
+    func gameSessionDidUpdateScore(_ session: GameSession)
+    func gameSessionDidUpdateStreak(_ session: GameSession)
+    func gameSessionDidUpdateTime(_ session: GameSession)
+    func gameSessionDidCompleteQuestion(_ session: GameSession, correct: Bool)
+    func gameSessionDidEnd(_ session: GameSession)
 }

@@ -259,9 +259,8 @@ class LevelPreviewPopup: SKNode {
         // Close button (X in top right)
         closeButton = NodeFactory.shared.createButton(
             text: "✕",
-            size: CGSize(width: 40, height: 40),
-            backgroundColor: UIColor.red.withAlphaComponent(0.7),
-            textColor: .white
+            style: .danger,
+            size: .small
         ) { [weak self] in
             self?.actionHandler(.close)
         }
@@ -272,9 +271,8 @@ class LevelPreviewPopup: SKNode {
         // Start button
         startButton = NodeFactory.shared.createButton(
             text: "🚀 Start Adventure",
-            size: CGSize(width: 200, height: 50),
-            backgroundColor: UIColor.green.withAlphaComponent(0.8),
-            textColor: .white
+            style: .success,
+            size: .large
         ) { [weak self] in
             self?.actionHandler(.startLevel)
         }

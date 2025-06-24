@@ -36,6 +36,9 @@ class MainGameScene: BaseGameScene {
     init(gameSession: GameSession) {
         self.gameSession = gameSession
         super.init(size: .zero)
+        
+        // Set up GameSession delegate
+        self.gameSession.sceneDelegate = self
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -158,8 +161,11 @@ class MainGameScene: BaseGameScene {
         
         // If using quick play mode, let TimerNode handle the countdown instead of GameSession timer
         if gameSession.gameMode == .quickPlay {
-            gameSession.pauseInternalTimer() // We'll create this method
+            gameSession.pauseInternalTimer() // Use the new method
         }
+        
+        // Validate and sync data integrity
+        gameSession.syncWithGameData()
         
         updateUI()
         presentNextQuestion()
@@ -337,45 +343,22 @@ class MainGameScene: BaseGameScene {
     }
     
     private func endGame() {
-        // Disable all interactions immediately
-        disableAnswerButtons()
+        gameSession.endGame()
         
-        // Stop the timer if running
-        timerNode?.stopTimer()
-        
-        // Ensure game session is properly ended
-        if gameSession.isGameActive {
-            gameSession.endGame() // We'll need to make this method public
-        }
-        
-        // Calculate performance metrics
-        let finalScore = gameSession.score
-        let totalQuestions = gameSession.questionsAnswered
-        let accuracyPercent = totalQuestions > 0 ? (Double(gameSession.correctAnswers) / Double(totalQuestions)) * 100 : 0
-        
-        // Show celebration effects based on performance
-        if accuracyPercent >= 80 {
-            playCelebrationEffect(at: CGPoint(x: frame.midX, y: frame.midY))
-            playSound(.levelComplete, haptic: .success)
-        } else if accuracyPercent >= 60 {
-            playSound(.levelComplete, haptic: .medium)
+        // Complete level if in campaign mode
+        if gameSession.gameMode == .campaign {
+            gameSession.completeLevel()
         } else {
-            playSound(.levelComplete)
+            // Sync progress for quick play
+            gameSession.syncWithGameData()
         }
         
-        // Wait for effects to complete before transitioning
-        let effectsDelay = SKAction.wait(forDuration: 2.0)
-        let transitionAction = SKAction.run { [weak self] in
-            self?.transitionToGameOver()
-        }
-        
-        run(SKAction.sequence([effectsDelay, transitionAction]))
-    }
-    
-    private func transitionToGameOver() {
-        // Create and transition to game over scene
-        let gameOverScene = GameOverScene(gameSession: gameSession)
-        GameSceneManager.shared.presentScene(.gameOver(gameSession))
+        // Enhanced transition to game over scene
+        GameSceneManager.shared.presentScene(
+            .gameOver(gameSession),
+            transitionType: .fade,
+            showLoading: true
+        )
     }
     
     // MARK: - Feedback Effects
@@ -715,5 +698,41 @@ class MainGameScene: BaseGameScene {
         if gameSession.gameMode == .quickPlay {
             timerNode?.setTimeRemaining(TimeInterval(gameSession.timeRemaining))
         }
+        
+        // Update progress and sync
+        gameSession.syncWithGameData()
+    }
+}
+
+// MARK: - GameSessionDelegate Implementation
+
+extension MainGameScene: GameSessionDelegate {
+    func gameSessionDidUpdateScore(_ session: GameSession) {
+        scoreDisplay?.setValue(session.score, animated: true)
+    }
+    
+    func gameSessionDidUpdateStreak(_ session: GameSession) {
+        streakDisplay?.setValue(session.streak, animated: true)
+        
+        // Show celebration for significant streaks
+        if session.streak >= 3 && session.streak % 3 == 0 {
+            showStreakCelebration()
+        }
+    }
+    
+    func gameSessionDidUpdateTime(_ session: GameSession) {
+        if session.gameMode == .quickPlay {
+            timerNode?.setTimeRemaining(TimeInterval(session.timeRemaining))
+        }
+    }
+    
+    func gameSessionDidCompleteQuestion(_ session: GameSession, correct: Bool) {
+        // This is handled in the main answer selection flow
+        // Could be used for additional feedback or analytics
+    }
+    
+    func gameSessionDidEnd(_ session: GameSession) {
+        // Prepare for transition to game over scene
+        endGame()
     }
 }

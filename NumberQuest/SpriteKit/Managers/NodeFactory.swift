@@ -87,22 +87,38 @@ class NodeFactory {
     
     // MARK: - Button Nodes
     
-    /// Create a game button with consistent styling
+    /// Create a game button with enhanced styling and effects
     func createButton(
         text: String,
-        size: CGSize,
-        backgroundColor: UIColor = UIColor.green.withAlphaComponent(0.8),
-        textColor: UIColor = .white,
-        cornerRadius: CGFloat = 15,
-        action: @escaping () -> Void
+        style: GameButtonNode.ButtonStyle = .primary,
+        size: GameButtonNode.ButtonSize = .medium,
+        icon: String? = nil,
+        action: (() -> Void)? = nil
     ) -> GameButtonNode {
         
         return GameButtonNode(
             text: text,
+            style: style,
             size: size,
-            backgroundColor: backgroundColor,
-            textColor: textColor,
-            cornerRadius: cornerRadius,
+            icon: icon,
+            action: action
+        )
+    }
+    
+    /// Create a custom sized button
+    func createCustomButton(
+        text: String,
+        style: GameButtonNode.ButtonStyle = .primary,
+        customSize: CGSize,
+        icon: String? = nil,
+        action: (() -> Void)? = nil
+    ) -> GameButtonNode {
+        
+        return GameButtonNode(
+            text: text,
+            style: style,
+            customSize: customSize,
+            icon: icon,
             action: action
         )
     }
@@ -131,7 +147,33 @@ class NodeFactory {
     
     // MARK: - Card Nodes
     
-    /// Create a card-style container node
+    /// Create an info card with enhanced styling
+    func createInfoCard(
+        title: String,
+        value: String = "",
+        style: InfoCardNode.CardStyle = .stats,
+        size: InfoCardNode.CardSize = .medium,
+        icon: String? = nil,
+        subtitle: String? = nil,
+        interactive: Bool = false,
+        action: (() -> Void)? = nil
+    ) -> InfoCardNode {
+        
+        let card = InfoCardNode(
+            title: title,
+            value: value,
+            style: style,
+            size: size,
+            icon: icon,
+            subtitle: subtitle,
+            interactive: interactive
+        )
+        
+        card.onTap = action
+        return card
+    }
+    
+    /// Create a simple card-style container node (legacy method)
     func createCard(
         size: CGSize,
         backgroundColor: UIColor = UIColor.white.withAlphaComponent(0.1),
@@ -152,8 +194,30 @@ class NodeFactory {
     
     // MARK: - Progress Nodes
     
-    /// Create a progress bar node
+    /// Create an enhanced progress bar node
     func createProgressBar(
+        size: CGSize,
+        progress: CGFloat = 0.0,
+        style: ProgressBarNode.ProgressStyle = .standard,
+        progressColor: ProgressBarNode.ProgressColor = .green,
+        backgroundColor: UIColor = UIColor.gray.withAlphaComponent(0.3),
+        showPercentage: Bool = false,
+        segmentCount: Int = 0
+    ) -> ProgressBarNode {
+        
+        return ProgressBarNode(
+            size: size,
+            progress: progress,
+            style: style,
+            progressColor: progressColor,
+            backgroundColor: backgroundColor,
+            showPercentage: showPercentage,
+            segmentCount: segmentCount
+        )
+    }
+    
+    /// Create a simple progress bar (legacy method)
+    func createSimpleProgressBar(
         size: CGSize,
         progress: CGFloat = 0.0,
         backgroundColor: UIColor = UIColor.gray.withAlphaComponent(0.3),
@@ -163,8 +227,59 @@ class NodeFactory {
         return ProgressBarNode(
             size: size,
             progress: progress,
-            backgroundColor: backgroundColor,
-            progressColor: progressColor
+            style: .standard,
+            progressColor: .custom(progressColor),
+            backgroundColor: backgroundColor
+        )
+    }
+    
+    // MARK: - Popup Nodes
+    
+    /// Create a popup/modal node
+    func createPopup(
+        title: String,
+        message: String? = nil,
+        icon: String? = nil,
+        style: PopupNode.PopupStyle = .alert,
+        buttons: PopupNode.ButtonConfiguration = .ok,
+        screenSize: CGSize = CGSize(width: 400, height: 600)
+    ) -> PopupNode {
+        
+        return PopupNode(
+            title: title,
+            message: message,
+            icon: icon,
+            style: style,
+            buttons: buttons,
+            screenSize: screenSize
+        )
+    }
+    
+    /// Create a confirmation popup
+    func createConfirmationPopup(
+        title: String,
+        message: String? = nil,
+        screenSize: CGSize = CGSize(width: 400, height: 600)
+    ) -> PopupNode {
+        
+        return PopupNode.confirmation(
+            title: title,
+            message: message,
+            screenSize: screenSize
+        )
+    }
+    
+    /// Create an alert popup
+    func createAlertPopup(
+        title: String,
+        message: String? = nil,
+        screenSize: CGSize = CGSize(width: 400, height: 600)
+    ) -> PopupNode {
+        
+        return PopupNode.alert(
+            title: title,
+            message: message,
+            screenSize: screenSize
         )
     }
     
@@ -218,121 +333,4 @@ enum TextStyleType {
     case questionText
     case answerText
     case scoreText
-}
-
-// MARK: - Custom Node Classes
-
-/// Custom button node with touch handling
-class GameButtonNode: SKNode {
-    
-    let backgroundNode: SKSpriteNode  // Made public
-    private let labelNode: SKLabelNode
-    private let action: () -> Void
-    
-    init(
-        text: String,
-        size: CGSize,
-        backgroundColor: UIColor,
-        textColor: UIColor,
-        cornerRadius: CGFloat,
-        action: @escaping () -> Void
-    ) {
-        self.action = action
-        
-        // Create background
-        self.backgroundNode = SKSpriteNode(color: backgroundColor, size: size)
-        
-        // Create label
-        self.labelNode = NodeFactory.shared.createLabel(
-            text: text,
-            style: .buttonLarge,
-            color: textColor
-        )
-        
-        super.init()
-        
-        // Add nodes
-        addChild(backgroundNode)
-        addChild(labelNode)
-        
-        // Enable user interaction
-        isUserInteractionEnabled = true
-    }
-    
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        // Scale down animation
-        let scaleDown = SKAction.scale(to: 0.95, duration: 0.1)
-        run(scaleDown)
-    }
-    
-    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        // Scale back up and execute action
-        let scaleUp = SKAction.scale(to: 1.0, duration: 0.1)
-        run(scaleUp) { [weak self] in
-            self?.action()
-        }
-    }
-    
-    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-        // Scale back up without action
-        let scaleUp = SKAction.scale(to: 1.0, duration: 0.1)
-        run(scaleUp)
-    }
-}
-
-/// Custom progress bar node
-class ProgressBarNode: SKNode {
-    
-    private let backgroundBar: SKSpriteNode
-    private let progressBar: SKSpriteNode
-    private let barSize: CGSize
-    private var currentProgress: CGFloat = 0.0
-    
-    init(
-        size: CGSize,
-        progress: CGFloat,
-        backgroundColor: UIColor,
-        progressColor: UIColor
-    ) {
-        self.barSize = size
-        self.currentProgress = progress
-        
-        // Create background bar
-        self.backgroundBar = SKSpriteNode(color: backgroundColor, size: size)
-        
-        // Create progress bar
-        let progressSize = CGSize(width: size.width * progress, height: size.height)
-        self.progressBar = SKSpriteNode(color: progressColor, size: progressSize)
-        self.progressBar.anchorPoint = CGPoint(x: 0, y: 0.5)
-        self.progressBar.position = CGPoint(x: -size.width / 2, y: 0)
-        
-        super.init()
-        
-        addChild(backgroundBar)
-        addChild(progressBar)
-    }
-    
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    /// Update progress with animation
-    func updateProgress(to newProgress: CGFloat, animated: Bool = true) {
-        let clampedProgress = max(0.0, min(1.0, newProgress))
-        let newSize = CGSize(width: barSize.width * clampedProgress, height: barSize.height)
-        
-        if animated {
-            let resizeAction = SKAction.resize(toWidth: newSize.width, height: newSize.height, duration: 0.3)
-            resizeAction.timingMode = .easeInEaseOut
-            progressBar.run(resizeAction)
-        } else {
-            progressBar.size = newSize
-        }
-        
-        currentProgress = clampedProgress
-    }
 }

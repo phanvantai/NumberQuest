@@ -127,11 +127,23 @@ class MainMenuScene: BaseGameScene {
             ("Settings", .settings)
         ]
         
+        #if DEBUG
+        // Add debug options in debug mode
+        let debugButtonData: [(text: String, action: SceneType)] = [
+            ("Debug: Model Test", .modelIntegrationTest),
+            ("Debug: Asset Test", .assetValidation)
+        ]
+        
+        let allButtonData = buttonData + debugButtonData
+        #else
+        let allButtonData = buttonData
+        #endif
+        
         let buttonSize = CGSize(width: 250, height: 70)
         let startY: CGFloat = 0.55
         let spacing: CGFloat = 0.12
         
-        for (index, data) in buttonData.enumerated() {
+        for (index, data) in allButtonData.enumerated() {
             let buttonY = startY - CGFloat(index) * spacing
             
             let button = createMenuButton(
@@ -329,13 +341,40 @@ class MainMenuScene: BaseGameScene {
         // Add button press feedback
         addButtonPressEffect()
         
+        // Determine transition type based on scene
+        let transitionType = getTransitionType(for: sceneType)
+        
         // Navigate after brief delay for feedback
         let delay = SKAction.wait(forDuration: 0.1)
         let navigate = SKAction.run {
-            GameSceneManager.shared.presentScene(sceneType)
+            GameSceneManager.shared.presentScene(
+                sceneType,
+                transitionType: transitionType,
+                showLoading: true
+            ) { success in
+                if success {
+                    print("Successfully navigated to \(sceneType)")
+                }
+            }
         }
         
         run(SKAction.sequence([delay, navigate]))
+    }
+    
+    /// Get appropriate transition type for each scene
+    private func getTransitionType(for sceneType: SceneType) -> GameSceneManager.TransitionType {
+        switch sceneType {
+        case .campaignMap:
+            return .slide(direction: .left)
+        case .quickPlay:
+            return .push(direction: .up)
+        case .settings:
+            return .moveIn(direction: .up)
+        case .progress:
+            return .reveal(direction: .up)
+        default:
+            return .default
+        }
     }
     
     private func addButtonPressEffect() {
