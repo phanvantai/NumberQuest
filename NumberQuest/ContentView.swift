@@ -6,10 +6,27 @@
 //
 
 import SwiftUI
+import SpriteKit
 
 struct ContentView: View {
     var body: some View {
-        MainMenuView()
+        SpriteKitGameView()
+            .ignoresSafeArea()
+    }
+}
+
+/// Main SpriteKit game container
+struct SpriteKitGameView: View {
+    var body: some View {
+        ZStack {
+            // SpriteKit game scene - Start with main menu
+            SpriteKitContainer(scene: MainMenuScene())
+                .ignoresSafeArea()
+        }
+        .onAppear {
+            // Game scene manager is already initialized as singleton
+            // No additional initialization needed
+        }
     }
 }
 

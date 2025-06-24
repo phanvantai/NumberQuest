@@ -345,7 +345,7 @@ struct AboutView: View {
     }
 }
 
-struct FeatureRow: View {
+private struct FeatureRow: View {
     let icon: String
     let text: String
     
