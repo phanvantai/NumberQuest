@@ -129,3 +129,5 @@ AuthKey_*.p8
 *.backup
 
 .DS_Store
+
+xcuserdata/
