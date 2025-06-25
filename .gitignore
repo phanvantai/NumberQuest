@@ -127,3 +127,5 @@ AuthKey_*.p8
 # Backup files
 *.bak
 *.backup
+
+.DS_Store
