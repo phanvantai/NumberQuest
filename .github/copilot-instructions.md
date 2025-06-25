@@ -77,10 +77,12 @@ NumberQuest is an educational iOS game built with SpriteKit, targeting children 
 - Create custom SKNode subclasses for reusable game objects
 
 ## Testing Approach
-- Unit tests for math logic and difficulty algorithms
+- Unit tests for math logic and difficulty algorithms should be added in separate test files
+- User will run tests manually and confirm results before proceeding
 - UI tests for game flow and interactions
 - Performance testing on various iOS devices
 - Accessibility testing for target age group
+- Tests should be comprehensive but added incrementally after core functionality is implemented
 
 ## When Helping with Code
 - Always consider the target age group (5-10) when suggesting UI/UX improvements
@@ -89,3 +91,6 @@ NumberQuest is an educational iOS game built with SpriteKit, targeting children 
 - Consider iPad and iPhone compatibility
 - Prioritize smooth animations and responsive touch controls
 - Think about parental controls and progress tracking features
+- Implement core functionality first, then add comprehensive tests in separate files
+- User will manually run and verify tests before confirming completion
+- Focus on getting working implementations rather than perfect test coverage initially

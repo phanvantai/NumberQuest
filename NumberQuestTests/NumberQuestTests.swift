@@ -8,6 +8,7 @@
 import Testing
 @testable import NumberQuest
 import Foundation
+import SpriteKit
 
 struct NumberQuestTests {
   

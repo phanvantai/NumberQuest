@@ -15,17 +15,21 @@ class GameViewController: UIViewController {
         super.viewDidLoad()
         
         if let view = self.view as! SKView? {
-            // Load the SKScene from 'GameScene.sks'
-            if let scene = SKScene(fileNamed: "GameScene") {
-                // Set the scale mode to scale to fit the window
-                scene.scaleMode = .aspectFill
-                
-                // Present the scene
-                view.presentScene(scene)
-            }
+            // Create the QuickPlayScene
+            let scene = QuickPlayScene()
+            
+            // Set the scale mode to scale to fit the window
+            scene.scaleMode = .aspectFill
+            
+            // Set the scene size to match the view
+            scene.size = view.bounds.size
+            
+            // Present the scene
+            view.presentScene(scene)
             
             view.ignoresSiblingOrder = true
             
+            // Show debug info for development
             view.showsFPS = true
             view.showsNodeCount = true
         }
