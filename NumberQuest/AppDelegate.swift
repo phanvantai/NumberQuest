@@ -15,6 +15,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
     // Override point for customization after application launch.
+    
+    // Register custom fonts
+    FontManager.registerCustomFonts()
+    
+    // Test fonts in debug mode
+    #if DEBUG
+    FontManager.debugCustomFontNames()
+    FontManager.testCustomFonts()
+    #endif
+    
     return true
   }
 

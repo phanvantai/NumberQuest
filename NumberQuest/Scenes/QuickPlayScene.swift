@@ -123,20 +123,15 @@ class QuickPlayScene: SKScene {
     }
     
     private func setupPerformanceUI() {
-        // Score display
-        scoreLabel = SKLabelNode(fontNamed: "Avenir-Heavy")
-        scoreLabel.text = "Score: 0"
-        scoreLabel.fontSize = 24
-        scoreLabel.fontColor = SKColor(red: 0.2, green: 0.4, blue: 0.8, alpha: 1.0)
+        // Score display with custom font
+        scoreLabel = SKLabelNode()
+        scoreLabel.configureAsScore("Score: 0", size: .large, color: SKColor(red: 0.2, green: 0.4, blue: 0.8, alpha: 1.0))
         scoreLabel.horizontalAlignmentMode = .left
         addChild(scoreLabel)
         
-        // Streak indicator
-        streakLabel = SKLabelNode(fontNamed: "Avenir-Medium")
-        streakLabel.text = "Streak: 0"
-        streakLabel.fontSize = 18
-        streakLabel.fontColor = SKColor(red: 0.8, green: 0.4, blue: 0.2, alpha: 1.0)
-        streakLabel.horizontalAlignmentMode = .left
+        // Streak indicator with custom font
+        streakLabel = SKLabelNode()
+        streakLabel.configureAsGameUI("Streak: 0", size: .medium, color: SKColor(red: 0.8, green: 0.4, blue: 0.2, alpha: 1.0), alignment: .left)
         addChild(streakLabel)
         
         // Accuracy percentage
@@ -189,12 +184,9 @@ class QuickPlayScene: SKScene {
     }
     
     private func setupProblemUI() {
-        // Math problem display
-        problemLabel = SKLabelNode(fontNamed: "Avenir-Heavy")
-        problemLabel.text = "Loading..."
-        problemLabel.fontSize = 48
-        problemLabel.fontColor = SKColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1.0)
-        problemLabel.horizontalAlignmentMode = .center
+        // Math problem display with custom font
+        problemLabel = SKLabelNode()
+        problemLabel.configureAsProblem("Loading...", size: .extraLarge, color: SKColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1.0))
         addChild(problemLabel)
     }
     
@@ -225,12 +217,8 @@ class QuickPlayScene: SKScene {
             addChild(button)
             
             // Answer text label
-            let label = SKLabelNode(fontNamed: "Avenir-Heavy")
-            label.text = "0"
-            label.fontSize = 32
-            label.fontColor = SKColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1.0)
-            label.horizontalAlignmentMode = .center
-            label.verticalAlignmentMode = .center
+            let label = SKLabelNode()
+            label.configureAsGameUI("0", size: .extraLarge, color: SKColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1.0))
             label.name = "answerLabel_\(i)"
             
             answerLabels.append(label)
@@ -923,8 +911,8 @@ class QuickPlayScene: SKScene {
     }
     
     private func handleHomeButton() {
-        // Return to main menu (would trigger scene transition)
-        // This would be handled by the GameViewController or SceneManager
+        // Return to main menu using SceneManager
         print("Returning to main menu...")
+        SceneManager.shared.showMainMenu()
     }
 }

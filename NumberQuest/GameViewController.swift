@@ -15,8 +15,8 @@ class GameViewController: UIViewController {
         super.viewDidLoad()
         
         if let view = self.view as! SKView? {
-            // Create the QuickPlayScene
-            let scene = QuickPlayScene()
+            // Create the MainMenuScene
+            let scene = MainMenuScene()
             
             // Set the scale mode to scale to fit the window
             scene.scaleMode = .aspectFill
@@ -29,7 +29,7 @@ class GameViewController: UIViewController {
             
             view.ignoresSiblingOrder = true
             
-            // Show debug info for development
+            // Show debug info for development (disable for production)
             view.showsFPS = true
             view.showsNodeCount = true
         }
