@@ -8,7 +8,7 @@
 import Foundation
 
 /// Represents difficulty levels from 1-10 with age-appropriate constraints
-struct DifficultyLevel {
+struct DifficultyLevel: Codable {
     let level: Int
     
     init(_ level: Int) {

@@ -8,7 +8,7 @@
 import Foundation
 
 /// Represents the different types of math problems available in the game
-enum ProblemType: String, CaseIterable {
+enum ProblemType: String, CaseIterable, Codable {
     case addition = "+"
     case subtraction = "-"
     case multiplication = "×"
