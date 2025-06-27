@@ -162,6 +162,12 @@ class MenuButton: SKNode {
     
     // MARK: - Public Methods
     
+    /// Updates the button's title text dynamically
+    func updateTitle(_ newTitle: String) {
+        labelNode.text = newTitle
+        setupAccessibility(title: newTitle)
+    }
+    
     func setEnabled(_ enabled: Bool) {
         isUserInteractionEnabled = enabled
         alpha = enabled ? 1.0 : 0.5

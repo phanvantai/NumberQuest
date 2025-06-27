@@ -49,10 +49,23 @@ class SceneManager {
         transitionToScene(quickPlayScene, transition: transition)
     }
     
-    /// Navigate to Campaign mode (placeholder for now)
+    /// Navigate to Campaign mode
     func showCampaign() {
-        // TODO: Implement CampaignMapScene
-        print("🎮 Campaign mode coming soon!")
+        let campaignMapScene = CampaignMapScene()
+        let transition = SKTransition.moveIn(with: .left, duration: 0.5)
+        transitionToScene(campaignMapScene, transition: transition)
+        
+        // Refresh progress after scene is loaded
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            campaignMapScene.refreshCampaignProgress()
+        }
+    }
+    
+    /// Navigate to a specific campaign level
+    func showCampaignLevel(_ level: CampaignLevel) {
+        let campaignLevelScene = CampaignLevelScene(level: level)
+        let transition = SKTransition.moveIn(with: .up, duration: 0.5)
+        transitionToScene(campaignLevelScene, transition: transition)
     }
     
     /// Navigate to Settings (placeholder for now)

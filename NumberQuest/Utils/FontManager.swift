@@ -38,6 +38,7 @@ class FontManager {
     // MARK: - Font Sizes
     
     enum FontSize: CGFloat {
+        case extraSmall = 12
         case small = 16
         case medium = 24
         case large = 32

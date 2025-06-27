@@ -179,8 +179,10 @@ class MainMenuScene: SKScene {
     private func startCampaign() {
         print("🗺️ Starting Campaign mode...")
         
-        // Show coming soon message for now
-        showComingSoonAlert(for: "Adventure Mode")
+        // Add button press sound effect
+        // AudioManager.shared.playSound("button_tap")
+        
+        SceneManager.shared.showCampaign()
     }
     
     private func showSettings() {
