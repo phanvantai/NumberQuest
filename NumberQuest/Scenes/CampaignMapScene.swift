@@ -844,24 +844,24 @@ extension CampaignMapScene {
     }
     
     private func setupInitialView() {
+        // Load progress from UserDefaults first
+        loadProgress()
+        
         // Setup parallax layers
         setupParallaxLayers()
         
-        // Setup level nodes
+        // Create level nodes and paths
         setupLevelNodes()
-        
-        // Setup connecting paths
         setupPaths()
         
-        // Load saved progress
-        loadProgress()
-        
-        // Update UI with loaded data
+        // Update the stars label with loaded progress
         totalStarsLabel.text = "⭐ \(totalStarsCollected)"
         
-        // Scroll to the appropriate starting position
+        // Scroll to the first unlocked level to give context
         scrollToFirstUnlockedLevel()
         
-        print("🗺️ Campaign map initialized with \(campaignLevels.count) levels")
+        print("🗺️ CampaignMapScene initial view setup completed")
+        print("📊 Total stars: \(totalStarsCollected)")
+        print("🎮 Levels generated: \(campaignLevels.count)")
     }
 }
